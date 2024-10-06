@@ -84,6 +84,27 @@ def register_frame():
     if file and file.filename.endswith('.jpg'):
         file_path = os.path.join(app.config['FRAMES_UPLOAD_FOLDER'], file.filename)
         file.save(file_path)  # Save the file
+
+        # Get JSON data from the request body
+        data = request.get_json()
+
+        # Check if JSON is present and process it
+        if data:
+            # Accessing fields from the JSON
+            if 'poses' in data:
+                poses = data['poses']
+            else:
+                return jsonify({"error": "Invalid JSON format, required key: 'poses'"}), 400
+        else:
+            return jsonify({"error": "No JSON data found"}), 400
+
+        # Return a success response
+        return jsonify({
+            "message": f"File {file.filename} uploaded successfully!",
+            "json_data": {
+                "poses": poses
+            }
+        }), 200
     else:
         return jsonify({'message': 'Invalid file format. Please upload a .jpg file.', 'status': 'error'}), 400
 
