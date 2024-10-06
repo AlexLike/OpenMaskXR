@@ -42,19 +42,13 @@ def reconstruct():
     if file and file.filename.endswith('.obj'):
         file_path = os.path.join(app.config['MESH_UPLOAD_FOLDER'], file.filename)
         file.save(file_path)  # Save the file
-  
-        # Get JSON data from the request body
-        data = request.get_json()
 
-        # Check if JSON is present and process it
-        if data:
-            # Accessing fields from the JSON
-            if 'camera_intrinsics' in data:
-                camera_intrinsics = data['camera_intrinsics']
-            else:
-                return jsonify({"error": "Invalid JSON format, required key: 'camera_intrinsics'"}), 400
+        # Get JSON data from the request body
+        # Since we are using multipart/form-data, we need to use request.form
+        if 'camera_intrinsics' in request.form:
+            camera_intrinsics = request.form['camera_intrinsics']
         else:
-            return jsonify({"error": "No JSON data found"}), 400
+            return jsonify({"error": "Invalid JSON format, required key: 'camera_intrinsics'"}), 400
 
         # Return a success response
         return jsonify({
@@ -85,18 +79,12 @@ def register_frame():
         file_path = os.path.join(app.config['FRAMES_UPLOAD_FOLDER'], file.filename)
         file.save(file_path)  # Save the file
 
-        # Get JSON data from the request body
-        data = request.get_json()
-
-        # Check if JSON is present and process it
-        if data:
-            # Accessing fields from the JSON
-            if 'poses' in data:
-                poses = data['poses']
-            else:
-                return jsonify({"error": "Invalid JSON format, required key: 'poses'"}), 400
+        # Get JSON data from the request form
+        if 'poses' in request.form:
+            poses = request.form['poses']
         else:
-            return jsonify({"error": "No JSON data found"}), 400
+            return jsonify({"error": "Invalid JSON format, required key: 'poses'"}), 400
+
 
         # Return a success response
         return jsonify({
