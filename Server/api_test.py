@@ -214,5 +214,58 @@ class FlaskAppTestCase(unittest.TestCase):
         # Assert that the error message indicates the missing 'poses' key
         self.assertIn("Invalid JSON format, required key: 'poses'", response.json['error'])
 
+     # Test the /recall/<uid> route with a valid UID containing .obj files in the subfolder
+    def test_recall_with_valid_uid(self):
+        # Specify the test UID and its mesh folder
+        test_uid = 'test_uid'
+        test_mesh_folder = os.path.join(self.test_mesh_folder, test_uid)
+        
+        # Ensure the test folder for the UID exists and create a mock .obj file in it
+        os.makedirs(test_mesh_folder, exist_ok=True)
+        with open(os.path.join(test_mesh_folder, 'test_file.obj'), 'w') as f:
+            f.write('mock content')
+
+        # Send the GET request to the /recall/<uid> route
+        response = self.client.get(f'/recall/{test_uid}')
+        
+        # Assert that the response status code is 200
+        self.assertEqual(response.status_code, 200)
+        # Assert that the response contains the list of .obj files
+        self.assertIn('test_file.obj', response.json['files'])
+        # Assert that the success message is correct
+        self.assertIn(f'Mesh files for UID {test_uid} retrieved successfully', response.json['message'])
+
+     # Test the /recall/<uid> route with a valid UID but no .obj files in the subfolder
+    def test_recall_with_valid_uid_no_obj_files(self):
+        # Specify the test UID and its mesh folder
+        test_uid = 'test_uid'
+        test_mesh_folder = os.path.join(self.test_mesh_folder, test_uid)
+
+        # Ensure the test folder for the UID exists and it's empty
+        os.makedirs(test_mesh_folder, exist_ok=True)
+
+        # Remove any existing files to ensure the folder is empty
+        for file in os.listdir(test_mesh_folder):
+            os.remove(os.path.join(test_mesh_folder, file))
+
+        # Send the GET request to the /recall/<uid> route
+        response = self.client.get(f'/recall/{test_uid}')
+        
+        # Assert that the response status code is 404
+        self.assertEqual(response.status_code, 404)
+        # Assert that the error message indicates no .obj files found
+        self.assertIn(f'No .obj files found in folder for UID {test_uid}', response.json['message'])
+
+
+    # Test the /recall/<uid> route with an invalid (non-existent) UID
+    def test_recall_with_invalid_uid(self):
+        # Send the GET request to the /recall/<uid> route with a non-existent UID
+        response = self.client.get(f'/recall/non_existent_uid')
+        
+        # Assert that the response status code is 404
+        self.assertEqual(response.status_code, 404)
+        # Assert that the error message indicates no mesh files found for the invalid UID
+        self.assertIn('No mesh files found for UID non_existent_uid', response.json['message'])
+
 if __name__ == '__main__':
     unittest.main()

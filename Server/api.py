@@ -113,6 +113,27 @@ def register_frame(uid):
         }
     }), 200
 
+# Route to recall the mesh files for a specific uid
+@app.route('/recall/<uid>', methods=['GET'])
+def recall(uid):
+    uid_folder = os.path.join(app.config['MESH_UPLOAD_FOLDER'], uid)
+
+    # Check if the folder exists
+    if not os.path.exists(uid_folder):
+        return jsonify({'message': f'No mesh files found for UID {uid}'}), 404
+
+    # Get a list of .obj files in the folder
+    obj_files = [f for f in os.listdir(uid_folder) if f.endswith('.obj')]
+
+    if not obj_files:
+        return jsonify({'message': f'No .obj files found in folder for UID {uid}'}), 404
+
+    # Return a list of .obj files in the folder
+    return jsonify({
+        'message': f'Mesh files for UID {uid} retrieved successfully',
+        'files': obj_files
+    }), 200
+
 # Error handling example
 @app.errorhandler(404)
 def route_not_found(e):
