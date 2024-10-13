@@ -42,8 +42,11 @@ class FlaskAppTestCase(unittest.TestCase):
 
         # Clean up any frames uploaded during the test
         if os.path.exists(cls.test_frames_folder):
-            for file in os.listdir(cls.test_frames_folder):
-                os.remove(os.path.join(cls.test_frames_folder, file))
+            for root, dirs, files in os.walk(cls.test_frames_folder, topdown=False):
+                for file in files:
+                    os.remove(os.path.join(root, file))
+                for dir in dirs:
+                    os.rmdir(os.path.join(root, dir))
             os.rmdir(cls.test_frames_folder)
 
     # Test for reconstruct route with multiple valid .obj files and valid JSON (success case)
@@ -128,40 +131,88 @@ class FlaskAppTestCase(unittest.TestCase):
         # Assert that the error message is correct
         self.assertIn('No file part in the request', response.json['message'])
 
-    # Test register-frame route without file
+    def test_register_frame_with_file_and_poses(self):
+        frame_number = '001'
+        data = {
+            'file': (BytesIO(b'mock jpg content'), 'test_frame.jpg'),
+            'poses': '{"pose1": [1,0,0], "pose2": [0,1,0]}'  # Poses as form data
+        }
+        
+        # Send the POST request using data=data
+        response = self.client.post(f'/register-frame/{self.test_uid}?frame_number={frame_number}', 
+                                    data=data, 
+                                    content_type='multipart/form-data')
+        
+        # Assert that the response status code is 200
+        self.assertEqual(response.status_code, 200)
+        # Assert that the response contains the success message
+        self.assertIn(f'File {frame_number}.jpg uploaded successfully!', response.json['message'])
+        # Assert that the 'poses' key is included in the response
+        self.assertIn('poses', response.json['json_data'])
+
+        # Assert that the file was saved correctly
+        saved_file_path = os.path.join(app.config['FRAMES_UPLOAD_FOLDER'], self.test_uid, f'{frame_number}.jpg')
+        self.assertTrue(os.path.exists(saved_file_path))
+
+    # Test for /register-frame/<uid> route with no file part in request (error case)
     def test_register_frame_no_file(self):
-        response = self.client.post('/register-frame', data={})
+        frame_number = '001'
+        data = {}
+        
+        # Send the POST request without a file
+        response = self.client.post(f'/register-frame/{self.test_uid}?frame_number={frame_number}', data=data, content_type='multipart/form-data')
+        
+        # Assert that the response status code is 400 (Bad Request)
         self.assertEqual(response.status_code, 400)
+        # Assert that the error message is correct
         self.assertIn('No file part in the request', response.json['message'])
 
-    # Test register-frame route with file but missing JSON field (poses)
-    def test_register_frame_missing_json_key(self):
+    # Test for /register-frame/<uid> route with file but no frame_number (error case)
+    def test_register_frame_no_frame_number(self):
         data = {
-            'file': (BytesIO(b'mock jpg content'), 'test.jpg')
+            'file': (BytesIO(b'mock jpg content'), 'test_frame.jpg')
         }
-        response = self.client.post('/register-frame', data=data, content_type='multipart/form-data')
+        
+        # Send the POST request without the frame_number query parameter
+        response = self.client.post(f'/register-frame/{self.test_uid}', data=data, content_type='multipart/form-data')
+        
+        # Assert that the response status code is 400 (Bad Request)
         self.assertEqual(response.status_code, 400)
+        # Assert that the error message is correct
+        self.assertIn('Frame number is required', response.json['message'])
+
+    # Test for /register-frame/<uid> route with invalid file type (error case)
+    def test_register_frame_invalid_file_type(self):
+        frame_number = '001'
+        data = {
+            'file': (BytesIO(b'mock content'), 'test_frame.txt')  # Invalid file type
+        }
+        
+        # Send the POST request with an invalid file type
+        response = self.client.post(f'/register-frame/{self.test_uid}?frame_number={frame_number}', data=data, content_type='multipart/form-data')
+        
+        # Assert that the response status code is 400 (Bad Request)
+        self.assertEqual(response.status_code, 400)
+        # Assert that the error message is correct
+        self.assertIn('Invalid file format. Please upload a .jpg file.', response.json['message'])
+
+    # Test the /register-frame/<uid> route when 'poses' is missing in the form data
+    def test_register_frame_no_poses(self):
+        frame_number = '001'
+        data = {
+            'file': (BytesIO(b'mock jpg content'), 'test_frame.jpg')
+            # No 'poses' key in form data
+        }
+        
+        # Send the POST request
+        response = self.client.post(f'/register-frame/{self.test_uid}?frame_number={frame_number}', 
+                                    data=data, 
+                                    content_type='multipart/form-data')
+        
+        # Assert that the response status code is 400 (Bad Request)
+        self.assertEqual(response.status_code, 400)
+        # Assert that the error message indicates the missing 'poses' key
         self.assertIn("Invalid JSON format, required key: 'poses'", response.json['error'])
-
-    # Test register-frame route with file and valid JSON
-    def test_register_frame_with_file_and_json(self):
-        data = {
-            'file': (BytesIO(b'mock jpg content'), 'test.jpg'),
-            'poses': 'mock_poses'
-        }
-        response = self.client.post('/register-frame', data=data, content_type='multipart/form-data')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('File test.jpg uploaded successfully!', response.json['message'])
-        self.assertEqual(response.json['json_data']['poses'], 'mock_poses')
-
-    # Test register-frame route with invalid file format
-    def test_register_frame_invalid_file(self):
-        data = {
-            'file': (BytesIO(b'mock jpg content'), 'test.png')
-        }
-        response = self.client.post('/register-frame', data=data, content_type='multipart/form-data')
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('Invalid file format', response.json['message'])
 
 if __name__ == '__main__':
     unittest.main()

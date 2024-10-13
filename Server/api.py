@@ -72,39 +72,46 @@ def reconstruct(uid):
     }), 200
 
 # Route for receiving posed RGB frames
-@app.route('/register-frame', methods=['POST'])
-def register_frame():
-     # Check if the post request has the file part
+@app.route('/register-frame/<uid>', methods=['POST'])
+def register_frame(uid):
     if 'file' not in request.files:
-        return jsonify({'message': 'No file part in the request', 'status': 'error'}), 400
+        return jsonify({'message': 'No file part in the request'}), 400
 
     file = request.files['file']
+    frame_number = request.args.get('frame_number')
 
-    # Check if the file has a valid name
+    if not frame_number:
+        return jsonify({'message': 'Frame number is required'}), 400
+
     if file.filename == '':
-        return jsonify({'message': 'No selected file', 'status': 'error'}), 400
+        return jsonify({'message': 'No selected file'}), 400
 
-    # Check if the uploaded file is a JPEG file
-    if file and file.filename.endswith('.jpg'):
-        file_path = os.path.join(app.config['FRAMES_UPLOAD_FOLDER'], file.filename)
-        file.save(file_path)  # Save the file
+    # Only allow jpg files
+    if not file.filename.endswith('.jpg'):
+        return jsonify({'message': 'Invalid file format. Please upload a .jpg file.'}), 400
 
-        # Get JSON data from the request form
-        if 'poses' in request.form:
-            poses = request.form['poses']
-        else:
-            return jsonify({"error": "Invalid JSON format, required key: 'poses'"}), 400
+    # Create the sub-folder if it doesn't exist
+    uid_folder = os.path.join(app.config['FRAMES_UPLOAD_FOLDER'], uid)
+    os.makedirs(uid_folder, exist_ok=True)
 
+    # Save the file
+    file_path = os.path.join(uid_folder, f'{frame_number}.jpg')
+    file.save(file_path)
 
-        # Return a success response
-        return jsonify({
-            "message": f"File {file.filename} uploaded successfully!",
-            "json_data": {
-                "poses": poses
-            }
-        }), 200
+    # Get JSON data from the request form
+    if 'poses' in request.form:
+        poses = request.form['poses']
     else:
-        return jsonify({'message': 'Invalid file format. Please upload a .jpg file.', 'status': 'error'}), 400
+        return jsonify({"error": "Invalid JSON format, required key: 'poses'"}), 400
+
+
+    # Return a success response
+    return jsonify({
+        'message': f'File {frame_number}.jpg uploaded successfully!',
+        'json_data': {
+            'poses': poses
+        }
+    }), 200
 
 # Error handling example
 @app.errorhandler(404)
