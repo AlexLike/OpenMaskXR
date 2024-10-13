@@ -25,41 +25,51 @@ app.config['FRAMES_UPLOAD_FOLDER'] = FRAMES_UPLOAD_FOLDER
 if not os.path.exists(FRAMES_UPLOAD_FOLDER):
     os.makedirs(FRAMES_UPLOAD_FOLDER)
 
-# Route for receiving reconstruction mesh and camera intrinsics
-@app.route('/reconstruct', methods=['POST'])
-def reconstruct():
-     # Check if the post request has the file part
+@app.route('/reconstruct/<uid>', methods=['POST'])
+def reconstruct(uid):
+    # Ensure the sub-folder for the given UID exists
+    folder_path = os.path.join(app.config['MESH_UPLOAD_FOLDER'], uid)
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    # Check if there are files in the request
     if 'file' not in request.files:
         return jsonify({'message': 'No file part in the request', 'status': 'error'}), 400
 
-    file = request.files['file']
+    # Get the list of files
+    files = request.files.getlist('file')
 
-    # Check if the file has a valid name
-    if file.filename == '':
+    # Validate that there are files
+    if not files or all(f.filename == '' for f in files):
         return jsonify({'message': 'No selected file', 'status': 'error'}), 400
 
-    # Check if the uploaded file is an OBJ file
-    if file and file.filename.endswith('.obj'):
-        file_path = os.path.join(app.config['MESH_UPLOAD_FOLDER'], file.filename)
-        file.save(file_path)  # Save the file
+    saved_files = []
 
-        # Get JSON data from the request body
-        # Since we are using multipart/form-data, we need to use request.form
-        if 'camera_intrinsics' in request.form:
-            camera_intrinsics = request.form['camera_intrinsics']
+    # Process each file
+    for file in files:
+        # Check if the uploaded file is an OBJ file
+        if file and file.filename.endswith('.obj'):
+            file_path = os.path.join(folder_path, file.filename)
+            file.save(file_path)  # Save the file
+            saved_files.append(file.filename)
         else:
-            return jsonify({"error": "Invalid JSON format, required key: 'camera_intrinsics'"}), 400
+            return jsonify({'message': f'Invalid file format for {file.filename}. Please upload .obj files.', 'status': 'error'}), 400
 
-        # Return a success response
-        return jsonify({
-            "message": f"File {file.filename} uploaded successfully!",
-            "json_data": {
-                "camera_intrinsics": camera_intrinsics
-            }
-        }), 200
-
+    # Get JSON data from the request form
+    if 'camera_intrinsics' in request.form:
+        camera_intrinsics = request.form['camera_intrinsics']
     else:
-        return jsonify({'message': 'Invalid file format. Please upload a .obj file.', 'status': 'error'}), 400
+        return jsonify({"error": "Invalid JSON format, required key: 'camera_intrinsics'"}), 400
+
+    # Return a success response
+    return jsonify({
+        "message": "Files uploaded successfully!",
+        "uploaded_files": saved_files,
+        "sub_folder": uid,
+        "json_data": {
+            "camera_intrinsics": camera_intrinsics
+        }
+    }), 200
 
 # Route for receiving posed RGB frames
 @app.route('/register-frame', methods=['POST'])
