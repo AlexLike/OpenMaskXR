@@ -3,37 +3,47 @@ using UnityEngine;
 
 public class ModelManager : MonoBehaviour
 {
-    [SerializeField] private GameObject model;
+    [SerializeField] private GameObject dioramaTable;
+
+    [Header("Spawn Settings")]
     [SerializeField] private float spawnDurationHeight = 1.5f;
     [SerializeField] private float spawnDurationRotation = 2.5f;
 
+    private GameObject currentModel;
+
     private Vector3 initialPosition;
     private Vector3 targetPosition;
-    private Quaternion initialRotation;
-    private Quaternion targetRotation;
+    private Quaternion initialRotation = Quaternion.identity;
+    private Quaternion targetRotation = Quaternion.Euler(0, 90f, 0f); // Rotate 90 degrees around the Y-axis
 
-    private void Start()
+    public void SpawnModel(GameObject model)
     {
+        // Set initial position to be below the ground and in front of the XR camera
+        initialPosition = Camera.main.transform.position + Camera.main.transform.forward * 2f;
+        initialPosition.y = -0.42f;
+
+        // Set target position to be in front of the XR camera but above ground
+        targetPosition = initialPosition;
+        targetPosition.y = 1.2f;
+
         if (model != null)
         {
-            initialPosition = model.transform.position;
-            initialPosition.y = -0.42f;
+            currentModel = Instantiate(model, initialPosition, initialRotation);
 
-            targetPosition = model.transform.position;
-            targetPosition.y = 1.2f;
+            // Spawn diorama table directly below model as child object
+            float yMin = currentModel.GetComponentInChildren<Renderer>().bounds.min.y; // Note that this assumes the model has a single mesh renderer
+            Vector3 tablePosition = new Vector3(currentModel.transform.position.x, yMin - 0.01f, currentModel.transform.position.z);
+            Instantiate(dioramaTable, tablePosition, Quaternion.identity, currentModel.transform);
 
-            initialRotation = model.transform.rotation;
-            targetRotation = initialRotation * Quaternion.Euler(0, 90f, 0f); // Rotate 90 degrees around the Y-axis
+            StartCoroutine(AnimateModel(true));
         }
     }
 
-    public void Animate(bool spawn)
+    public void DespawnCurrentModel()
     {
-        model.SetActive(true);
-
-        if (model != null)
+        if (currentModel != null)
         {
-            StartCoroutine(AnimateModel(spawn));
+            StartCoroutine(AnimateModel(false));
         }
     }
 
@@ -55,25 +65,24 @@ public class ModelManager : MonoBehaviour
             {
                 // Easen only the Y position between the start and end points
                 float newY = EasingFunction.EaseInOutCubic(startPos.y, endPos.y, elapsedTime / spawnDurationHeight);
-                model.transform.position = new Vector3(model.transform.position.x, newY, model.transform.position.z);
+                currentModel.transform.position = new Vector3(currentModel.transform.position.x, newY, currentModel.transform.position.z);
             }
 
             if (elapsedTime < spawnDurationRotation)
             {
                 // Lerp rotation from start to end
-                model.transform.rotation = Quaternion.Slerp(startRot, endRot, EasingFunction.EaseInOutSine(0f, 1f, elapsedTime / spawnDurationRotation));
+                currentModel.transform.rotation = Quaternion.Slerp(startRot, endRot, EasingFunction.EaseInOutSine(0f, 1f, elapsedTime / spawnDurationRotation));
             }
 
             yield return null;
         }
 
         // Ensure final position and rotation are set correctly
-        model.transform.position = new Vector3(model.transform.position.x, endPos.y, model.transform.position.z);
-        model.transform.rotation = endRot;
+        currentModel.transform.SetPositionAndRotation(new Vector3(currentModel.transform.position.x, endPos.y, currentModel.transform.position.z), endRot);
 
         if (!spawn)
         {
-            model.SetActive(false);
+            Destroy(currentModel);
         }
     }
 }

@@ -1,11 +1,17 @@
 using System.Collections;
-using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class UIController : MonoBehaviour
 {
+    [Header("Home Menu")]
     [SerializeField] private GameObject homeMenuParent;
+
+    [Header("Query Menu")]
     [SerializeField] private GameObject queryMenuParent;
+    [SerializeField] private TextMeshProUGUI queryMenuTitle;
+
+    [Header("Animation Settings")]
     [SerializeField] private float fadeDuration = 0.5f;
 
     public void ToggleQueryMenuVisibility(bool isVisible)
@@ -14,6 +20,12 @@ public class UIController : MonoBehaviour
             queryMenuParent.SetActive(true);
         CanvasGroup[] canvasGroups = queryMenuParent.GetComponentsInChildren<CanvasGroup>();
         StartCoroutine(FadeMenu(queryMenuParent, canvasGroups, isVisible));
+    }
+
+    public void InitQueryMenu(string modelName)
+    {
+        ToggleQueryMenuVisibility(true);
+        queryMenuTitle.text = modelName;
     }
 
     public void ToggleHomeMenuVisibility(bool isVisible)
