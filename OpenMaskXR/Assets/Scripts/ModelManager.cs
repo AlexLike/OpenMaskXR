@@ -19,7 +19,10 @@ public class ModelManager : MonoBehaviour
     public void SpawnModel(GameObject model)
     {
         // Set initial position to be below the ground and in front of the XR camera
-        initialPosition = Camera.main.transform.position + Camera.main.transform.forward * 2f;
+        Vector3 forwardDir = Camera.main.transform.forward;
+        forwardDir.y = 0f; // ignore camera's vertical tilt
+        forwardDir.Normalize();
+        initialPosition = Camera.main.transform.position + forwardDir;
         initialPosition.y = -0.42f;
 
         // Set target position to be in front of the XR camera but above ground
@@ -32,7 +35,7 @@ public class ModelManager : MonoBehaviour
 
             // Spawn diorama table directly below model as child object
             float yMin = currentModel.GetComponentInChildren<Renderer>().bounds.min.y; // Note that this assumes the model has a single mesh renderer
-            Vector3 tablePosition = new Vector3(currentModel.transform.position.x, yMin - 0.01f, currentModel.transform.position.z);
+            Vector3 tablePosition = new Vector3(currentModel.transform.position.x, yMin - 0.042f, currentModel.transform.position.z);
             Instantiate(dioramaTable, tablePosition, Quaternion.identity, currentModel.transform);
 
             StartCoroutine(AnimateModel(true));
