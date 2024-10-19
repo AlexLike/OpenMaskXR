@@ -154,9 +154,7 @@ def register_frame(uid):
         200,
     )
 
-
-# Route to recall the mesh files for a specific uid
-# Route to recall mesh files and return them in a zip folder
+# Route to recall mesh files for a specific uid and return them in a zip folder
 @app.route('/recall/<uid>', methods=['GET'])
 def recall(uid):
     # Get the folder path for the given UID
