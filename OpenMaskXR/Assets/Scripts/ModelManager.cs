@@ -10,6 +10,7 @@ public class ModelManager : MonoBehaviour
     [SerializeField] private float spawnDurationRotation = 2.5f;
 
     private GameObject currentModel;
+    private Coroutine currentAnimationCoroutine;
 
     private Vector3 initialPosition;
     private Vector3 targetPosition;
@@ -38,7 +39,11 @@ public class ModelManager : MonoBehaviour
             Vector3 tablePosition = new Vector3(currentModel.transform.position.x, yMin - 0.042f, currentModel.transform.position.z);
             Instantiate(dioramaTable, tablePosition, Quaternion.identity, currentModel.transform);
 
-            StartCoroutine(AnimateModel(true));
+            if (currentAnimationCoroutine != null)
+            {
+                StopCoroutine(currentAnimationCoroutine);
+            }
+            currentAnimationCoroutine = StartCoroutine(AnimateModel(true));
         }
     }
 
@@ -46,7 +51,11 @@ public class ModelManager : MonoBehaviour
     {
         if (currentModel != null)
         {
-            StartCoroutine(AnimateModel(false));
+            if (currentAnimationCoroutine != null)
+            {
+                StopCoroutine(currentAnimationCoroutine);
+            }
+            currentAnimationCoroutine = StartCoroutine(AnimateModel(false));
         }
     }
 

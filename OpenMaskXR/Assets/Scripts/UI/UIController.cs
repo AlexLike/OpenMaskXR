@@ -16,8 +16,6 @@ public class UIController : MonoBehaviour
 
     public void ToggleQueryMenuVisibility(bool isVisible)
     {
-        if (isVisible)
-            queryMenuParent.SetActive(true);
         CanvasGroup[] canvasGroups = queryMenuParent.GetComponentsInChildren<CanvasGroup>();
         StartCoroutine(FadeMenu(queryMenuParent, canvasGroups, isVisible));
     }
@@ -30,15 +28,20 @@ public class UIController : MonoBehaviour
 
     public void ToggleHomeMenuVisibility(bool isVisible)
     {
-        if (isVisible)
-            homeMenuParent.SetActive(true);
-
         CanvasGroup[] canvasGroups = homeMenuParent.GetComponentsInChildren<CanvasGroup>();
         StartCoroutine(FadeMenu(homeMenuParent, canvasGroups, isVisible));
     }
 
     private IEnumerator FadeMenu(GameObject parent, CanvasGroup[] canvasGroups, bool isVisible)
     {
+
+        // Delay the fade-in animation by 1 second to allow the spawning/despawning of the model to play first
+        if (isVisible)
+            yield return new WaitForSeconds(1f);
+
+        if (isVisible)
+            parent.SetActive(true);
+
         float startAlpha = isVisible ? 0f : 1f;
         float endAlpha = isVisible ? 1f : 0f;
         float elapsedTime = 0f;
