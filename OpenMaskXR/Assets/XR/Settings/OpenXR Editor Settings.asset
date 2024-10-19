@@ -15,6 +15,4 @@ MonoBehaviour:
   Keys: 07000000
   Values:
   - featureSets:
-    - com.magicleap.openxr.featuregroup
     - com.unity.openxr.featureset.meta
-  m_vulkanAdditionalGraphicsQueue: 0

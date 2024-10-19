@@ -11,8 +11,8 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
+  - Spawner Contact
+  - Placeable Surface
   - 
   - 
   - 
@@ -36,11 +36,8 @@ TagManager:
   - 
   - 
   - XR Simulation
-  - PolySpatial
+  - 
   m_SortingLayers:
   - name: Default
     uniqueID: 0
-    locked: 0
-  - name: PolySpatialUI
-    uniqueID: 1493093479
     locked: 0
