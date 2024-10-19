@@ -1,5 +1,8 @@
 from flask import Flask, request, jsonify
 import os
+import zipfile
+import io
+from flask import send_file
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -114,25 +117,41 @@ def register_frame(uid):
     }), 200
 
 # Route to recall the mesh files for a specific uid
+# Route to recall mesh files and return them in a zip folder
 @app.route('/recall/<uid>', methods=['GET'])
 def recall(uid):
+    # Get the folder path for the given UID
     uid_folder = os.path.join(app.config['MESH_UPLOAD_FOLDER'], uid)
-
+    
     # Check if the folder exists
     if not os.path.exists(uid_folder):
         return jsonify({'message': f'No mesh files found for UID {uid}'}), 404
-
-    # Get a list of .obj files in the folder
+    
+    # Find all .obj files in the folder
     obj_files = [f for f in os.listdir(uid_folder) if f.endswith('.obj')]
-
+    
+    # If no .obj files are found, return a 404 response
     if not obj_files:
         return jsonify({'message': f'No .obj files found in folder for UID {uid}'}), 404
+    
+    # Create a zip file in memory
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for obj_file in obj_files:
+            file_path = os.path.join(uid_folder, obj_file)
+            # Add each .obj file to the zip, preserving its name
+            zip_file.write(file_path, obj_file)
+    
+    # Move the buffer's position to the beginning
+    zip_buffer.seek(0)
 
-    # Return a list of .obj files in the folder
-    return jsonify({
-        'message': f'Mesh files for UID {uid} retrieved successfully',
-        'files': obj_files
-    }), 200
+    # Send the zip file as a downloadable response
+    return send_file(
+        zip_buffer,
+        mimetype='application/zip',
+        as_attachment=True,
+        download_name=f'mesh_files_{uid}.zip'
+    )
 
 # Error handling example
 @app.errorhandler(404)

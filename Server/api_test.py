@@ -2,6 +2,7 @@ import unittest
 import os
 from io import BytesIO
 from api import app
+import zipfile
 
 class FlaskAppTestCase(unittest.TestCase):
     
@@ -214,7 +215,8 @@ class FlaskAppTestCase(unittest.TestCase):
         # Assert that the error message indicates the missing 'poses' key
         self.assertIn("Invalid JSON format, required key: 'poses'", response.json['error'])
 
-     # Test the /recall/<uid> route with a valid UID containing .obj files in the subfolder
+
+    # Test the /recall/<uid> route with a valid UID containing .obj files in the subfolder
     def test_recall_with_valid_uid(self):
         # Specify the test UID and its mesh folder
         test_uid = 'test_uid'
@@ -230,12 +232,16 @@ class FlaskAppTestCase(unittest.TestCase):
         
         # Assert that the response status code is 200
         self.assertEqual(response.status_code, 200)
-        # Assert that the response contains the list of .obj files
-        self.assertIn('test_file.obj', response.json['files'])
-        # Assert that the success message is correct
-        self.assertIn(f'Mesh files for UID {test_uid} retrieved successfully', response.json['message'])
+        
+        # Check that the response is a zip file
+        self.assertEqual(response.mimetype, 'application/zip')
 
-     # Test the /recall/<uid> route with a valid UID but no .obj files in the subfolder
+        # Open the zip file from the response and check its contents
+        zip_content = BytesIO(response.data)
+        with zipfile.ZipFile(zip_content, 'r') as zip_file:
+            self.assertIn('test_file.obj', zip_file.namelist())
+
+    # Test the /recall/<uid> route with a valid UID but no .obj files in the subfolder
     def test_recall_with_valid_uid_no_obj_files(self):
         # Specify the test UID and its mesh folder
         test_uid = 'test_uid'
@@ -255,7 +261,6 @@ class FlaskAppTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         # Assert that the error message indicates no .obj files found
         self.assertIn(f'No .obj files found in folder for UID {test_uid}', response.json['message'])
-
 
     # Test the /recall/<uid> route with an invalid (non-existent) UID
     def test_recall_with_invalid_uid(self):
