@@ -13,6 +13,7 @@ import os
 from io import BytesIO
 from api import app
 import zipfile
+import json
 
 class FlaskAppTestCase(unittest.TestCase):
 
@@ -27,9 +28,18 @@ class FlaskAppTestCase(unittest.TestCase):
         cls.test_mesh_folder = "test_meshes"
         cls.test_frames_folder = "test_frames"
 
+        # Paths for additional folders
+        TRIANGLE_ID_FOLDER = 'test_triangle_id_to_object_id'
+        CLIP_FOLDER = 'test_object_id_to_CLIP'
+
+        cls.test_triangle_folder = TRIANGLE_ID_FOLDER
+        cls.test_clip_folder = CLIP_FOLDER
+
         # Update the app configuration to use the test folders
         app.config["MESH_UPLOAD_FOLDER"] = cls.test_mesh_folder
         app.config["FRAMES_UPLOAD_FOLDER"] = cls.test_frames_folder
+        app.config["TRIANGLE_TO_OBJECT_FOLDER"] = cls.test_triangle_folder
+        app.config["OBJECT_TO_CLIP_FOLDER"] = cls.test_clip_folder
 
         # Ensure test mesh folder exists before tests run
         if not os.path.exists(cls.test_mesh_folder):
@@ -39,26 +49,20 @@ class FlaskAppTestCase(unittest.TestCase):
         if not os.path.exists(cls.test_frames_folder):
             os.makedirs(cls.test_frames_folder)
 
+        os.makedirs(cls.test_triangle_folder, exist_ok=True)
+        os.makedirs(cls.test_clip_folder, exist_ok=True)
+
     @classmethod
     def tearDownClass(cls):
-        """Clean up resources after all tests have run"""
-        # Clean up by removing the test mesh folder and its contents
-        if os.path.exists(cls.test_mesh_folder):
-            for root, dirs, files in os.walk(cls.test_mesh_folder, topdown=False):
-                for file in files:
-                    os.remove(os.path.join(root, file))
-                for dir in dirs:
-                    os.rmdir(os.path.join(root, dir))
-            os.rmdir(cls.test_mesh_folder)
-
-        # Clean up any frames uploaded during the test
-        if os.path.exists(cls.test_frames_folder):
-            for root, dirs, files in os.walk(cls.test_frames_folder, topdown=False):
-                for file in files:
-                    os.remove(os.path.join(root, file))
-                for dir in dirs:
-                    os.rmdir(os.path.join(root, dir))
-            os.rmdir(cls.test_frames_folder)
+        # Clean up the test folders
+        for folder in [cls.test_mesh_folder, cls.test_triangle_folder, cls.test_clip_folder, cls.test_frames_folder]:
+            for uid_folder in os.listdir(folder):
+                uid_folder_path = os.path.join(folder, uid_folder)
+                if os.path.isdir(uid_folder_path):
+                    for file in os.listdir(uid_folder_path):
+                        os.remove(os.path.join(uid_folder_path, file))
+                    os.rmdir(uid_folder_path)
+            os.rmdir(folder)
 
     # Test for reconstruct route with multiple valid .obj files and valid JSON (success case)
     def test_reconstruct_with_uid(self):
@@ -283,38 +287,73 @@ class FlaskAppTestCase(unittest.TestCase):
         with zipfile.ZipFile(zip_content, 'r') as zip_file:
             self.assertIn('test_file.obj', zip_file.namelist())
 
-    # Test the /recall/<uid> route with a valid UID but no .obj files in the subfolder
-    def test_recall_with_valid_uid_no_obj_files(self):
-        # Specify the test UID and its mesh folder
-        test_uid = "test_uid"
+    
+    # Test the /recall/<uid> route with valid .obj and corresponding JSON files
+    def test_recall_with_valid_uid(self):
+        test_uid = 'test_uid'
         test_mesh_folder = os.path.join(self.test_mesh_folder, test_uid)
+        test_triangle_folder = os.path.join(self.test_triangle_folder, test_uid)
+        test_clip_folder = os.path.join(self.test_clip_folder, test_uid)
 
-        # Ensure the test folder for the UID exists and it's empty
+        # Create necessary subfolders
         os.makedirs(test_mesh_folder, exist_ok=True)
+        os.makedirs(test_triangle_folder, exist_ok=True)
+        os.makedirs(test_clip_folder, exist_ok=True)
 
-        # Remove any existing files to ensure the folder is empty
-        for file in os.listdir(test_mesh_folder):
-            os.remove(os.path.join(test_mesh_folder, file))
+        # Create mock .obj file
+        obj_file = 'test_file.obj'
+        with open(os.path.join(test_mesh_folder, obj_file), 'w') as f:
+            f.write('mock content')
 
-        # Send the GET request to the /recall/<uid> route
-        response = self.client.get(f"/recall/{test_uid}")
+        # Create corresponding triangle_id_to_object_id JSON
+        triangle_json = {'data': [[1, 100], [2, 101]]}
+        with open(os.path.join(test_triangle_folder, 'test_file.json'), 'w') as f:
+            json.dump(triangle_json, f)
 
-        # Assert that the response status code is 404
+        # Create corresponding object_id_to_CLIP JSON
+        clip_json = {'data': [[100, [0.1, 0.2]], [101, [0.3, 0.4]]]}
+        with open(os.path.join(test_clip_folder, 'test_file.json'), 'w') as f:
+            json.dump(clip_json, f)
+
+        # Send the GET request to /recall/<uid>
+        response = self.client.get(f'/recall/{test_uid}')
+        
+        # Assert the response is a zip file
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, 'application/zip')
+
+        # Check contents of the zip file
+        zip_content = BytesIO(response.data)
+        with zipfile.ZipFile(zip_content, 'r') as zip_file:
+            self.assertIn(f'{test_uid}/test_file.obj', zip_file.namelist())
+            self.assertIn(f'{test_uid}/test_file.json', zip_file.namelist())
+
+    # Test the /recall/<uid> route with valid .obj but missing JSON files
+    def test_recall_with_missing_json(self):
+        test_uid = 'test_uid'
+        test_mesh_folder = os.path.join(self.test_mesh_folder, test_uid)
+        test_triangle_folder = os.path.join(self.test_triangle_folder, test_uid)
+        test_clip_folder = os.path.join(self.test_clip_folder, test_uid)
+
+        # Create necessary subfolders
+        os.makedirs(test_mesh_folder, exist_ok=True)
+        os.makedirs(test_triangle_folder, exist_ok=True)
+        os.makedirs(test_clip_folder, exist_ok=True)
+
+        # Create mock .obj file
+        obj_file = 'test_file.obj'
+        with open(os.path.join(test_mesh_folder, obj_file), 'w') as f:
+            f.write('mock content')
+
+        # Do not create corresponding JSON files to simulate missing files
+
+        # Send the GET request to /recall/<uid>
+        response = self.client.get(f'/recall/{test_uid}')
+
+        # Assert the response is a 404 due to missing JSON files
         self.assertEqual(response.status_code, 404)
-        # Assert that the error message indicates no .obj files found
-        self.assertIn(f'No .obj files found in folder for UID {test_uid}', response.json['message'])
+        self.assertIn('Missing triangle ID mapping for test_file.obj', response.json['message'])
 
-    # Test the /recall/<uid> route with an invalid (non-existent) UID
-    def test_recall_with_invalid_uid(self):
-        # Send the GET request to the /recall/<uid> route with a non-existent UID
-        response = self.client.get(f"/recall/non_existent_uid")
-
-        # Assert that the response status code is 404
-        self.assertEqual(response.status_code, 404)
-        # Assert that the error message indicates no mesh files found for the invalid UID
-        self.assertIn(
-            "No mesh files found for UID non_existent_uid", response.json["message"]
-        )
 
 
 if __name__ == "__main__":
