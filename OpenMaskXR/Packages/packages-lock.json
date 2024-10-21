@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.meta.xr.sdk.voice": {
+      "version": "69.0.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.burst": {
       "version": "1.8.17",
       "depth": 1,
