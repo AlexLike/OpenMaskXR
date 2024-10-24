@@ -85,10 +85,9 @@ RUN pip install pytorch-lightning==2.4.0 \
 RUN git clone --recursive https://github.com/OpenMask3D/openmask3d.git \
     && cd openmask3d \
     && git checkout 3bc3fc52693b25668d0e91d55a2ea714544a4749
-WORKDIR /third_party/openmask3d
 
 # Install PointNet2.
-RUN cd openmask3d/class_agnostic_mask_computation/third_party/pointnet2 \
+RUN cd openmask3d/openmask3d/class_agnostic_mask_computation/third_party/pointnet2 \
     && pip install .
 
 # Install CLIP and Segment Anything.
@@ -97,14 +96,23 @@ RUN pip install git+https://github.com/facebookresearch/segment-anything.git@6fd
 
 # Prepare all checkpoints.
 RUN python -c "import clip; clip.load('ViT-L/14@336px','cpu')"
-COPY resources/sam_vit_h_4b8939.pth resources/sam_vit_h_4b8939.pth
-COPY resources/scannet200_model.ckpt resources/scannet200_model.ckpt
+COPY checkpoints/sam_vit_h_4b8939.pth checkpoints/sam_vit_h_4b8939.pth
+COPY checkpoints/scannet200_model.ckpt checkpoints/scannet200_model.ckpt
 
-# Mount OpenMask3D as the last package.
-RUN pip install -e . && pip cache purge
+# Mount OpenMask3D.
+RUN cd openmask3d && pip install -e .
+ENV PYTHONPATH=/third_party/openmask3d/openmask3d/class_agnostic_mask_computation
 
-# Make the included scripts executable.
-RUN chmod +x ./run_openmask3d_single_scene.sh ./run_openmask3d_scannet200_eval.sh
+# Prepare web server.
+WORKDIR /root
+RUN pip install flask
 
-# To build the image:                    docker build --tag openmask3d .   
-# To run the image in interactive mode:  docker run --gpus all -v .\resources:/third_party/openmask3d/resources -v .\output\:/third_party/openmask3d/output -it openmask3d
+COPY api.py api.py
+EXPOSE 80
+
+ENV OMP_NUM_THREADS=3
+CMD ["python", "-u", "api.py"]
+
+# To build the image:                    docker build --tag openmask3d .
+# To run the image in server mode:       docker run --gpus all -v .\resources\scene_example:/root/input -v .\output\:/root/output openmask3d
+# To run the image in interactive mode:  docker run --gpus all -v .\resources\scene_example:/root/input -v .\output\:/root/output -it openmask3d bash
