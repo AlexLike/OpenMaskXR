@@ -10,7 +10,6 @@ public class UIController : MonoBehaviour
     [Header("Query Menu")]
     [SerializeField] private GameObject queryMenuParent;
     [SerializeField] private TextMeshProUGUI queryMenuTitle;
-    [SerializeField] private TextMeshProUGUI queryMenuPreviewText;
     [SerializeField] private GameObject queryMenuSliderScreen;
     [SerializeField] private GameObject queryMenuPromptScreen;
 
@@ -27,7 +26,6 @@ public class UIController : MonoBehaviour
     {
         ToggleQueryMenuVisibility(true);
         queryMenuTitle.text = modelName;
-        queryMenuPreviewText.text = "Query 16 objects...";
         QueryMenuToggleSliderScreen(false);
     }
 
@@ -35,9 +33,6 @@ public class UIController : MonoBehaviour
     {
         queryMenuSliderScreen.SetActive(isSliderScreen);
         queryMenuPromptScreen.SetActive(!isSliderScreen);
-
-        if (!isSliderScreen)
-            queryMenuPreviewText.text = "Query 16 objects...";
     }
 
     public void ToggleHomeMenuVisibility(bool isVisible)
