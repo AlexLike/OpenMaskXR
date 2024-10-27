@@ -142,7 +142,11 @@ PlayerSettings:
   tvOSBundleVersion: 1.0
   bundleVersion: 0.1.0
   preloadedAssets:
-  - {fileID: 11400000, guid: f8a442de0c8906f4d9c00184993fc289, type: 2}
+  - {fileID: 0}
+  - {fileID: 11400000, guid: 5739d8bd155aa5648b1e3f5f07e949e3, type: 2}
+  - {fileID: -8196854396901781169, guid: 3c8d824e4b692874f8c226cf44c50ec1, type: 2}
+  - {fileID: 1743498488643306262, guid: d10645538fdac64429724e875f2b1b0a, type: 2}
+  - {fileID: 11400000, guid: 1b9d7d80bdacd144bae43ffa1fa90232, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -173,7 +177,7 @@ PlayerSettings:
     tvOS: 0
   overrideDefaultApplicationIdentifier: 1
   AndroidBundleVersionCode: 1
-  AndroidMinSdkVersion: 32
+  AndroidMinSdkVersion: 29
   AndroidTargetSdkVersion: 0
   AndroidPreferredInstallLocation: 0
   aotOptions: 
@@ -263,7 +267,7 @@ PlayerSettings:
   useCustomGradlePropertiesTemplate: 0
   useCustomGradleSettingsTemplate: 0
   useCustomProguardFile: 0
-  AndroidTargetArchitectures: 2
+  AndroidTargetArchitectures: 8
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}
   AndroidKeystoreName: 
@@ -573,7 +577,9 @@ PlayerSettings:
     m_EncodingQuality: 1
   m_BuildTargetGroupLightmapSettings: []
   m_BuildTargetGroupLoadStoreDebugModeSettings: []
-  m_BuildTargetNormalMapEncoding: []
+  m_BuildTargetNormalMapEncoding:
+  - m_BuildTarget: Android
+    m_Encoding: 1
   m_BuildTargetDefaultTextureCompressionFormat:
   - serializedVersion: 3
     m_BuildTarget: Android
@@ -844,9 +850,20 @@ PlayerSettings:
   webGLCloseOnQuit: 0
   webWasm2023: 0
   scriptingDefineSymbols:
-    Android: USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS
-    Standalone: USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS
+    Android: USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS;USE_ML_OPENXR;MAGICLEAP;UNITY_POST_PROCESSING_STACK_V2
+    EmbeddedLinux: USE_ML_OPENXR;MAGICLEAP;UNITY_POST_PROCESSING_STACK_V2
+    GameCoreXboxOne: USE_ML_OPENXR;MAGICLEAP;UNITY_POST_PROCESSING_STACK_V2
+    Nintendo Switch: USE_ML_OPENXR;MAGICLEAP;UNITY_POST_PROCESSING_STACK_V2
+    PS4: USE_ML_OPENXR;MAGICLEAP;UNITY_POST_PROCESSING_STACK_V2
+    PS5: USE_ML_OPENXR;MAGICLEAP;UNITY_POST_PROCESSING_STACK_V2
+    QNX: USE_ML_OPENXR;MAGICLEAP;UNITY_POST_PROCESSING_STACK_V2
+    ReservedCFE: USE_ML_OPENXR;MAGICLEAP;UNITY_POST_PROCESSING_STACK_V2
+    Standalone: USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS;USE_ML_OPENXR;MAGICLEAP;UNITY_POST_PROCESSING_STACK_V2
+    VisionOS: USE_ML_OPENXR;MAGICLEAP;UNITY_POST_PROCESSING_STACK_V2
+    WebGL: USE_ML_OPENXR;MAGICLEAP;UNITY_POST_PROCESSING_STACK_V2
     Windows Store Apps: USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS
+    XboxOne: USE_ML_OPENXR;MAGICLEAP;UNITY_POST_PROCESSING_STACK_V2
+    tvOS: USE_ML_OPENXR;MAGICLEAP;UNITY_POST_PROCESSING_STACK_V2
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

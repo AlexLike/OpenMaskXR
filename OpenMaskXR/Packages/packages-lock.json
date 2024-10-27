@@ -1,5 +1,27 @@
 {
   "dependencies": {
+    "com.magicleap.setuptool": {
+      "version": "file:com.magicleap.setuptool",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.magicleap.unitysdk": {
+      "version": "2.5.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.xr.openxr": "1.11.0",
+        "com.unity.xr.arfoundation": "5.1.0",
+        "com.unity.xr.interaction.toolkit": "2.1.0",
+        "com.unity.inputsystem": "1.8.2",
+        "com.unity.modules.androidjni": "1.0.0",
+        "com.unity.xr.interactionsubsystems": "2.0.0",
+        "com.unity.collections": "2.2.1",
+        "com.unity.burst": "1.8.9"
+      },
+      "url": "https://registry.npmjs.org"
+    },
     "com.meta.xr.sdk.voice": {
       "version": "69.0.0",
       "depth": 0,
@@ -9,7 +31,7 @@
     },
     "com.unity.burst": {
       "version": "1.8.18",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {
         "com.unity.mathematics": "1.2.1",
@@ -26,7 +48,7 @@
     },
     "com.unity.collections": {
       "version": "2.5.1",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {
         "com.unity.burst": "1.8.17",
@@ -126,7 +148,7 @@
     },
     "com.unity.nuget.mono-cecil": {
       "version": "1.11.4",
-      "depth": 3,
+      "depth": 2,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
@@ -136,6 +158,15 @@
       "depth": 1,
       "source": "registry",
       "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.postprocessing": {
+      "version": "3.4.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.modules.physics": "1.0.0"
+      },
       "url": "https://packages.unity.com"
     },
     "com.unity.render-pipelines.core": {
@@ -217,7 +248,7 @@
     },
     "com.unity.test-framework.performance": {
       "version": "3.0.3",
-      "depth": 3,
+      "depth": 2,
       "source": "registry",
       "dependencies": {
         "com.unity.test-framework": "1.1.31",
@@ -297,6 +328,15 @@
         "com.unity.modules.imgui": "1.0.0",
         "com.unity.xr.core-utils": "2.2.3",
         "com.unity.modules.physics": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.xr.interactionsubsystems": {
+      "version": "2.0.0",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.modules.subsystems": "1.0.0"
       },
       "url": "https://packages.unity.com"
     },
