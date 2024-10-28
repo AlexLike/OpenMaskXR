@@ -13,7 +13,8 @@ import os
 import zipfile
 import io
 from flask import send_file
-import json
+import processing
+import torch
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -229,6 +230,29 @@ def recall(uid):
         mimetype='application/zip',
         as_attachment=True,
         download_name=f'mesh_files_and_mappings_{uid}.zip'
+    )
+
+# Route for receiving posed RGB frames
+@app.route("/text-to-CLIP", methods=["POST"])
+def text_to_CLIP():
+    data = request.json
+
+    # Check if there is a text field in the request
+    if "text" not in data:
+        return (
+            jsonify({"message": "No text part in the request", "status": "error"}),
+            400,
+        )
+    result = processing.encode_query(data["text"]).tolist()
+
+    # Return a success response
+    return (
+        jsonify(
+            {
+                "CLIP_embedding": result,
+            }
+        ),
+        200,
     )
 
 # Error handling example

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 8eede3857ead6dd47a5041cff1cde49d
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 174780
+  packageName: In-Game Debug Log for AR and VR devices
+  packageVersion: 1.0
+  assetPath: Assets/DebugXR, by Tobiesen/Prefabs/ExceptionLog.prefab
+  uploadId: 379151

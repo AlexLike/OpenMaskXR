@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 1196e21444add5a4783d247fb4be33ad
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 174780
+  packageName: In-Game Debug Log for AR and VR devices
+  packageVersion: 1.0
+  assetPath: Assets/DebugXR, by Tobiesen/Scripts/DebugLogPanel.cs
+  uploadId: 379151

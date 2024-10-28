@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 9fc0d4010bbf28b4594072e72b8655ab
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 174780
+  packageName: In-Game Debug Log for AR and VR devices
+  packageVersion: 1.0
+  assetPath: Assets/DebugXR, by Tobiesen/Scenes/SampleScene.unity
+  uploadId: 379151
