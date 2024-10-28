@@ -1,0 +1,14 @@
+- data.masks.masks_path=/third_party/openmask3d/output/2024-10-22-21-22-53-experiment/scene_example_masks.pt
+- data.camera.poses_path=/third_party/openmask3d/resources/scene_example/pose
+- data.camera.intrinsic_path=/third_party/openmask3d/resources/scene_example/intrinsic/intrinsic_color.txt
+- data.camera.intrinsic_resolution=[968,1296]
+- data.depths.depths_path=/third_party/openmask3d/resources/scene_example/depth
+- data.depths.depth_scale=1000
+- data.depths.depths_ext=.png
+- data.images.images_path=/third_party/openmask3d/resources/scene_example/color
+- data.images.images_ext=.jpg
+- data.point_cloud_path=/third_party/openmask3d/resources/scene_example/scene_example.ply
+- output.output_directory=/third_party/openmask3d/output/2024-10-22-21-22-53-experiment
+- output.save_crops=false
+- external.sam_checkpoint=/third_party/openmask3d/resources/sam_vit_h_4b8939.pth
+- gpu.optimize_gpu_usage=false
