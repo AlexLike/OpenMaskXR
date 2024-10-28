@@ -1,0 +1,90 @@
+# Use official PyTorch image with CUDA 11.3 support
+FROM pytorch/pytorch:1.12.1-cuda11.3-cudnn8-devel
+
+# Set environment variables
+ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 6.2 7.0 7.2 7.5 8.0 8.6"
+ENV CUDA_HOME=/usr/local/cuda
+ENV PATH=$CUDA_HOME/bin:$PATH
+ENV LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
+ENV FORCE_CUDA=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git make build-essential libopenblas-dev libgl-dev libx11-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install torch-scatter
+RUN pip install torch-scatter -f https://data.pyg.org/whl/torch-1.12.1+cu113.html
+
+# Install Detectron2
+RUN pip install 'git+https://github.com/facebookresearch/detectron2.git@710e7795d0eeadf9def0e7ef957eea13532e34cf' --no-deps
+
+# Create third_party directory and clone repositories
+RUN mkdir /third_party
+WORKDIR /third_party
+
+# Install MinkowskiEngine with explicit CUDA paths and build flags
+RUN git clone --recursive https://github.com/NVIDIA/MinkowskiEngine \
+    && cd MinkowskiEngine \
+    && git checkout 02fc608bea4c0549b0a7b00ca1bf15dee4a0b228 \
+    && FORCE_CUDA=1 python setup.py install --force_cuda --blas=openblas \
+    && cd ..
+
+# Install misc. dependencies
+RUN pip install pytorch-lightning \
+    fire \
+    imageio \
+    tqdm \
+    wandb \
+    python-dotenv \
+    pyviz3d \
+    scipy \
+    plyfile \
+    scikit-learn \
+    trimesh \
+    loguru \
+    albumentations \
+    volumentations \
+    antlr4-python3-runtime \
+    black \
+    omegaconf==2.0.6 \
+    hydra-core==1.0.5 \
+    pynvml \
+    gpustat \
+    tabulate \
+    pytest \
+    tensorboardx \
+    yapf \
+    termcolor \
+    addict \
+    blessed \
+    gorilla-core \
+    matplotlib \
+    cython  \
+    pycocotools \
+    h5py \
+    transforms3d \
+    open3d \
+    torchmetrics \
+    setuptools \
+    fvcore \
+    cloudpickle \
+    Pillow \
+    ftfy \
+    regex 
+
+# Clone OpenMask3D
+RUN git clone --recursive https://github.com/OpenMask3D/openmask3d.git \
+    && cd openmask3d \
+    && git checkout 3bc3fc52693b25668d0e91d55a2ea714544a4749 \
+    && cd openmask3d/class_agnostic_mask_computation/third_party/pointnet2 \
+    && pip install .
+
+# Install CLIP and Segment Anything
+RUN pip install git+https://github.com/openai/CLIP.git@a9b1bf5920416aaeaec965c25dd9e8f98c864f16 --no-deps
+RUN pip install  git+https://github.com/facebookresearch/segment-anything.git@6fdee8f2727f4506cfbbe553e23b895e27956588 --no-deps
+
+# Mount OpenMask3D as a Pip package
+RUN cd openmask3d && pip install -e .
+
+# docker run --gpus all -v .\resources:/third_party/openmask3d/resources -it o6
