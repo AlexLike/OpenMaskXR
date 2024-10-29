@@ -354,6 +354,36 @@ class FlaskAppTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertIn('Missing triangle ID mapping for test_file.obj', response.json['message'])
 
+    # Test for /text_to_CLIP route
+    def test_text_to_CLIP_with_text(self):
+        data = {"text": (BytesIO(b"mock jpg content"), "test_frame.jpg")}
+
+        # Define the request payload
+        payload = {
+            "text": "Sample text to encode"
+        }
+
+        # Make a POST request with JSON data
+        response = self.client.post("/text-to-CLIP", json=payload)
+
+        # Check that the request was successful
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertIn("CLIP_embedding", data)
+
+    # Test for /text_to_CLIP route with no text
+    def test_text_to_CLIP_missing_text(self):
+        # Define the request payload without the "text" field
+        payload = {}
+
+        # Make a POST request with JSON data
+        response = self.client.post("/text-to-CLIP", json=payload)
+
+        # Check that the request failed due to missing "text" field
+        self.assertEqual(response.status_code, 400)
+        data = response.get_json()
+        self.assertEqual(data["message"], "No text part in the request")
+        self.assertEqual(data["status"], "error")
 
 
 if __name__ == "__main__":

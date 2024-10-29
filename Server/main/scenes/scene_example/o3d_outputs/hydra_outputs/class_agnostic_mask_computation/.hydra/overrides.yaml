@@ -1,0 +1,10 @@
+- general.experiment_name=experiment
+- general.checkpoint=/third_party/openmask3d/resources/scannet200_model.ckpt
+- general.train_mode=false
+- data.test_mode=test
+- model.num_queries=120
+- general.use_dbscan=true
+- general.dbscan_eps=0.95
+- general.save_visualizations=false
+- general.scene_path=/third_party/openmask3d/resources/scene_example/scene_example.ply
+- general.mask_save_dir=/third_party/openmask3d/output/2024-10-22-21-22-53-experiment
