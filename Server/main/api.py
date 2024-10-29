@@ -232,7 +232,7 @@ def recall(uid):
         download_name=f'mesh_files_and_mappings_{uid}.zip'
     )
 
-# Route for receiving posed RGB frames
+# Route for receiving CLIP embedding for input text
 @app.route("/text-to-CLIP", methods=["POST"])
 def text_to_CLIP():
     data = request.json
