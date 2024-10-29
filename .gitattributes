@@ -23,6 +23,7 @@
 *.blend             filter=lfs diff=lfs merge=lfs -text
 *.obj               filter=lfs diff=lfs merge=lfs -text
 *.usdz              filter=lfs diff=lfs merge=lfs -text
+*.ply               filter=lfs diff=lfs merge=lfs -text
 
 #ETC
 *.a                 filter=lfs diff=lfs merge=lfs -text
@@ -37,3 +38,6 @@
 *.rns               filter=lfs diff=lfs merge=lfs -text
 *.reason            filter=lfs diff=lfs merge=lfs -text
 *.lxo               filter=lfs diff=lfs merge=lfs -text
+
+#ZIP
+*.zip               filter=lfs diff=lfs merge=lfs -text
