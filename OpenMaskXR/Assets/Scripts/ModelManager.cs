@@ -32,12 +32,14 @@ public class ModelManager : MonoBehaviour
 
         if (model != null)
         {
-            currentModel = Instantiate(model, initialPosition, initialRotation);
+            currentModel = Instantiate(dioramaTable, initialPosition, Quaternion.identity);
+            float yMaxParent = currentModel.GetComponentInChildren<Renderer>().bounds.max.y;
+            float yMinChild = model.GetComponentInChildren<Renderer>().bounds.min.y;
+            Vector3 modelPosition = new Vector3(initialPosition.x, yMaxParent - yMinChild, initialPosition.z);
 
-            // Spawn diorama table directly below model as child object
-            float yMin = currentModel.GetComponentInChildren<Renderer>().bounds.min.y; // Note that this assumes the model has a single mesh renderer
-            Vector3 tablePosition = new Vector3(currentModel.transform.position.x, yMin - 0.042f, currentModel.transform.position.z);
-            Instantiate(dioramaTable, tablePosition, Quaternion.identity, currentModel.transform);
+            // Spawn model as a child of the diorama table
+            Instantiate(model, modelPosition, initialRotation, currentModel.transform);
+
 
             if (currentAnimationCoroutine != null)
             {
