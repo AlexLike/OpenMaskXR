@@ -30,22 +30,6 @@ def mask_point_cloud(pcd: o3d.geometry.PointCloud, masks_output: np.ndarray, ins
 
     return queried_pcd
 
-def create_mesh_from_pcd(pcd: o3d.geometry.PointCloud, depth: int = 8, voxel_size: float = 0.04, radius:float = 0.1, max_nn:int = 30) -> o3d.geometry.TriangleMesh:
-    """Create a mesh from a point cloud
-    Args:
-        pcd (o3d.geometry.PointCloud): Point cloud to create the mesh
-        depth (int, optional): Depth of the Poisson reconstruction.
-        voxel_size (float, optional): Voxel size for the voxel down sampling
-        radius (float, optional): Radius for the normal estimation
-        max_nn (int, optional): Maximum number of nearest neighbors for the normal estimation
-    Returns:
-        o3d.geometry.TriangleMesh: Mesh created from the point cloud
-    """
-    down_pcd = pcd.voxel_down_sample(voxel_size=voxel_size)
-    down_pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=radius, max_nn=max_nn))
-    mesh, _ = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(down_pcd, depth=depth)
-    return mesh
-
 def mesh_to_dict(mesh: o3d.geometry.TriangleMesh, key_name: str) -> dict:
     """Export the mesh to a JSON file
     Args:
@@ -69,3 +53,7 @@ def mesh_to_dict(mesh: o3d.geometry.TriangleMesh, key_name: str) -> dict:
         mesh_dict["colors"] = colors # Colors are in RGB format and correspond to the vertex
 
     return {key_name: mesh_dict}
+
+# TODO: Function given a mesh, point cloud, masks, and instance ID, return the triangle ids from the mesh that correspond to the instance.
+
+# def get_instance_triangles(mesh: o3d.geometry.TriangleMesh, pcd: o3d.geometry.PointCloud, masks_output: np.ndarray, instance_id: int) -> np.ndarray:

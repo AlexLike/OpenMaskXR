@@ -13,17 +13,17 @@ import open3d as o3d
 import torch
 import json
 import os
-from postprocess_helpers import mask_point_cloud, create_mesh_from_pcd, mesh_to_dict
+from postprocess_helpers import mask_point_cloud, mesh_to_dict
 
-def post_process(scene_name: str, generate_mesh: bool = False):
+def post_process(scene_name: str):
     """
     Post-processes the output of the OpenMask3D model for a given scene,
     generating segmented point clouds, meshes, and CLIP results in a reusable structure.
 
     Args:
         scene_name (str): Name of the scene folder containing the input files.
-        generate_mesh (bool): Flag to determine if meshes should be generated for each instance, then exported to a JSON file.
     """
+
     # Define scene path
     scene_path = os.path.join("scenes", scene_name)
 
@@ -49,7 +49,6 @@ def post_process(scene_name: str, generate_mesh: bool = False):
 
     # Initialize dictionaries to store clip and mesh data
     clip_dict = {}
-    meshes_dict = {} if generate_mesh else None
 
     # Read the number of instances
     num_instances = masks.shape[1]
@@ -61,16 +60,10 @@ def post_process(scene_name: str, generate_mesh: bool = False):
         queried_pcd_path = os.path.join(output_pcd_folder, f"scene_example_instance_{i}.ply")
         o3d.io.write_point_cloud(queried_pcd_path, queried_pcd)
 
-        # Optionally, create and store the mesh as a dictionary
-        if generate_mesh:
-            instance_mesh = create_mesh_from_pcd(queried_pcd)
-            mesh_dict = mesh_to_dict(instance_mesh, str(i))
-            meshes_dict.update(mesh_dict)
+        # TODO: Don't need to export the point clouds, we will instead just return a list of triangles
+        # That belong to each instance, and then we can use that to generate the mesh on the client side
         
         del queried_pcd
-        
-        if generate_mesh:
-            del instance_mesh
 
         # Store the clip results as a list in the dictionary
         clip_dict[str(i)] = clip_results[i].tolist()
@@ -79,16 +72,9 @@ def post_process(scene_name: str, generate_mesh: bool = False):
     with open(output_clip_path, "w") as f:
         json.dump(clip_dict, f)
 
-    # Optionally, export the mesh JSON
-    if generate_mesh and meshes_dict:
-        with open(output_mesh_path, "w") as f:
-            json.dump(meshes_dict, f)
-
     print(f"Clip results exported to {output_clip_path}")
-    if generate_mesh:
-        print(f"Meshes exported to {output_mesh_path}")
 
 # Example usage
 if __name__ == "__main__":
     scene_name = "scene_example"
-    post_process(scene_name, generate_mesh=False)
+    post_process(scene_name)
