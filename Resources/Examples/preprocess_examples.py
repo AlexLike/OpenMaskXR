@@ -1,5 +1,4 @@
 import torch
-import pandas as pd
 import open3d as o3d
 import os
 import glob
@@ -9,8 +8,6 @@ import pymeshlab as pml
 
 # Pattern to match the .pth files inside subfolders (e.g., 0000_02-*/*_vh_clean_2.pth)
 file_pattern = os.path.join(".", "*", "scene*_vh_clean_2.pth")
-
-print(file_pattern)
 
 # Loop through each .pth file that matches the pattern
 for pth_file in glob.glob(file_pattern):

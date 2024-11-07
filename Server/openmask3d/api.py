@@ -87,6 +87,8 @@ def compute_masks():
 
 
 def compute_features(intrinsic_resolution, depth_scale):
+    print(f"EXT = {path.splitext(listdir(SCENE_COLOR_IMG_DIR)[0])[1]}")
+    print(f"PATH = {SCENE_COLOR_IMG_DIR}")
     run(
         cwd="/third_party/openmask3d/openmask3d",
         args=[
@@ -102,6 +104,7 @@ def compute_features(intrinsic_resolution, depth_scale):
             f"data.images.images_path={SCENE_COLOR_IMG_DIR}",
             f"data.images.images_ext={path.splitext(listdir(SCENE_COLOR_IMG_DIR)[0])[1]}",
             f"data.point_cloud_path={SCENE_PLY_PATH}",
+            "openmask3d.frequency=1",
             f"output.output_directory={OUTPUT_DIR}",
             f"output.save_crops={SAVE_CROPS}",
             f"hydra.run.dir={OUTPUT_DIR}/hydra_outputs/mask_features_computation",
