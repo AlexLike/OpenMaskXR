@@ -3624,7 +3624,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1173549766
 Transform:
   m_ObjectHideFlags: 0
@@ -5667,7 +5667,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1675409549
 Transform:
   m_ObjectHideFlags: 0
@@ -6509,6 +6509,7 @@ MonoBehaviour:
   queryMenuSliderScreen: {fileID: 673773739}
   queryMenuPromptScreen: {fileID: 1005050689}
   queryMenuPlaceholderText: {fileID: 8437028974921092445}
+  queryMenuVoiceInputButton: {fileID: 2155308231668200647}
   fadeDuration: 0.5
 --- !u!1 &2086108745
 GameObject:
@@ -6600,10 +6601,34 @@ MonoBehaviour:
         m_Calls: []
     _onStartListening:
       m_PersistentCalls:
-        m_Calls: []
+        m_Calls:
+        - m_Target: {fileID: 2073726595}
+          m_TargetAssemblyTypeName: UIController, Assembly-CSharp
+          m_MethodName: SetVoiceButtonColor
+          m_Mode: 6
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 1
+          m_CallState: 2
     _onStoppedListening:
       m_PersistentCalls:
-        m_Calls: []
+        m_Calls:
+        - m_Target: {fileID: 2073726595}
+          m_TargetAssemblyTypeName: UIController, Assembly-CSharp
+          m_MethodName: SetVoiceButtonColor
+          m_Mode: 6
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
     _onMicLevelChanged:
       m_PersistentCalls:
         m_Calls: []
@@ -6703,6 +6728,18 @@ MonoBehaviour:
       - m_Target: {fileID: 1623148459}
         m_TargetAssemblyTypeName: TMPro.TMP_Text, Unity.TextMeshPro
         m_MethodName: set_text
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
+      - m_Target: {fileID: 1819363478}
+        m_TargetAssemblyTypeName: ModelManager, Assembly-CSharp
+        m_MethodName: QueryModel
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -7377,6 +7414,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 3539203497917330496, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
   m_PrefabInstance: {fileID: 7420895945929955104}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2155308231668200647 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2663939797154798410, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
+  m_PrefabInstance: {fileID: 7420895945929955104}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2186132318622754006
 GameObject:
   m_ObjectHideFlags: 0
@@ -8221,7 +8269,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -45.57}
-  m_SizeDelta: {x: 319, y: 58}
+  m_SizeDelta: {x: 319, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &5185231986414197081
 Canvas:
@@ -9621,6 +9669,30 @@ PrefabInstance:
     m_TransformParent: {fileID: 1005050690}
     m_Modifications:
     - target: {fileID: 2663939797154798410, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
+      propertyPath: m_Colors.m_PressedColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2663939797154798410, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
+      propertyPath: m_Colors.m_PressedColor.g
+      value: 0.08327952
+      objectReference: {fileID: 0}
+    - target: {fileID: 2663939797154798410, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
+      propertyPath: m_Colors.m_PressedColor.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2663939797154798410, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
+      propertyPath: m_Colors.m_SelectedColor.b
+      value: 0.38327694
+      objectReference: {fileID: 0}
+    - target: {fileID: 2663939797154798410, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
+      propertyPath: m_Colors.m_SelectedColor.g
+      value: 0.38327694
+      objectReference: {fileID: 0}
+    - target: {fileID: 2663939797154798410, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
+      propertyPath: m_Colors.m_SelectedColor.r
+      value: 0.8207547
+      objectReference: {fileID: 0}
+    - target: {fileID: 2663939797154798410, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
       value: 1
       objectReference: {fileID: 0}
@@ -9639,7 +9711,7 @@ PrefabInstance:
     - target: {fileID: 2663939797154798410, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
-      objectReference: {fileID: 2086108745}
+      objectReference: {fileID: 0}
     - target: {fileID: 2663939797154798410, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -9658,7 +9730,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2663939797154798410, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
-      value: Meta.Voice.Samples.Dictation.DictationActivation, Meta.Voice.Samples.Dictation
+      value: Oculus.Voice.Dictation.AppDictationExperience, VoiceSDK.Dictation.Runtime
       objectReference: {fileID: 0}
     - target: {fileID: 2663939797154798410, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -9706,7 +9778,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3539203497917330496, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 3539203497917330496, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
       propertyPath: m_LocalRotation.w
@@ -9730,7 +9802,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3539203497917330496, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -40
+      value: 41.4
       objectReference: {fileID: 0}
     - target: {fileID: 3539203497917330496, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -9750,7 +9822,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4501786469176293867, guid: 43c7eaf80c32aff43b29d24acc23646b, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -10430,9 +10502,9 @@ RectTransform:
   - {fileID: 8437028974634091746}
   m_Father: {fileID: 5185231986414197080}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 159.5, y: -27}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 200, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &8437028975926327501

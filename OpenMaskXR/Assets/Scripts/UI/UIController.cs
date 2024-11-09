@@ -1,6 +1,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
 {
@@ -13,6 +14,7 @@ public class UIController : MonoBehaviour
     [SerializeField] private GameObject queryMenuSliderScreen;
     [SerializeField] private GameObject queryMenuPromptScreen;
     [SerializeField] private TextMeshProUGUI queryMenuPlaceholderText;
+    [SerializeField] private Button queryMenuVoiceInputButton;
 
     [Header("Animation Settings")]
     [SerializeField] private float fadeDuration = 0.5f;
@@ -42,6 +44,13 @@ public class UIController : MonoBehaviour
             else
                 queryMenuPlaceholderText.text = "Enter a query here...";
         }
+    }
+
+    public void SetVoiceButtonColor(bool isRed)
+    {
+        var colors = queryMenuVoiceInputButton.colors;
+        colors.normalColor = isRed ? Color.red : new Color(48 / 255f, 48 / 255f, 48 / 255f);
+        queryMenuVoiceInputButton.colors = colors;
     }
 
     public void ToggleHomeMenuVisibility(bool isVisible)
