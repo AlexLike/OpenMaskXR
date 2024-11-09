@@ -1,3 +1,5 @@
+#if UNITY_EDITOR
+
 using Leguar.TotalJSON;
 using System.Collections.Generic;
 using System.IO;
@@ -189,3 +191,5 @@ public class ObjMeshImporter : MonoBehaviour
     }
     */
 }
+
+#endif

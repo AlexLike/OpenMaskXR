@@ -153,7 +153,7 @@ public class ModelManager : MonoBehaviour
             // Don't have to do server access for getting embedding
             List<int> matchingKeys = GetKeysByFraction(queryVector, queryThreshold);
 
-            Debug.Log("Adjusting threshold to " + queryThreshold);
+            //Debug.Log("Adjusting threshold to " + queryThreshold);
             //Debug.Log($"Matching keys: {string.Join(", ", matchingKeys)}");
 
             // Highlight the matching instances
@@ -180,6 +180,7 @@ public class ModelManager : MonoBehaviour
             byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(text);
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = new DownloadHandlerBuffer();
+            request.timeout = 10;
             request.SetRequestHeader("Content-Type", "application/json");
 
             // Send the request and wait for a response
@@ -219,35 +220,45 @@ public class ModelManager : MonoBehaviour
             {
                 Debug.LogError("Error: " + request.error);
             }
+
+            request.Dispose();
         }
     }
 
     private void ParseJson(string scanName)
     {
         featureVectors = new Dictionary<int, float[]>();
-        string path = Path.Combine(Application.streamingAssetsPath, $"{scanName}.json");
-        if (File.Exists(path))
+        switch (scanName)
         {
-            string json = File.ReadAllText(path);
-            JSON jsonObject = JSON.ParseString(json);
-            instanceCount = jsonObject.Keys.Length;
-            foreach (string key in jsonObject.Keys)
-            {
-                float[] vec = jsonObject.GetJArray(key).AsFloatArray();
-
-                // Normalize feature vector
-                float norm = Mathf.Sqrt(ComputeDotProduct(vec, vec));
-                for (int i = 0; i < vec.Length; i++)
-                {
-                    vec[i] /= norm;
-                }
-
-                featureVectors.Add(int.Parse(key), vec);
-            }
+            case "0024_00-living-room":
+                ProcessJson(JSON_FeatureVectors.livingRoom);
+                break;
+            case "0479_01-laboratory":
+                ProcessJson(JSON_FeatureVectors.laboratory);
+                break;
+            default:
+                Debug.LogWarning("No JSON file found for scan: " + scanName);
+                break;
         }
-        else
+    }
+
+    private void ProcessJson(string json)
+    {
+        var jsonObject = JSON.ParseString(json);
+        instanceCount = jsonObject.Keys.Length;
+
+        foreach (string key in jsonObject.Keys)
         {
-            Debug.LogError("Cannot find JSON file at path: " + path);
+            float[] vec = jsonObject.GetJArray(key).AsFloatArray();
+
+            // Normalize feature vector
+            float norm = Mathf.Sqrt(ComputeDotProduct(vec, vec));
+            for (int i = 0; i < vec.Length; i++)
+            {
+                vec[i] /= norm;
+            }
+
+            featureVectors.Add(int.Parse(key), vec);
         }
     }
 
