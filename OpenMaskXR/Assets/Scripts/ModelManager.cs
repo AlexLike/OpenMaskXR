@@ -24,6 +24,7 @@ public class ModelManager : MonoBehaviour
     private Quaternion initialRotation = Quaternion.identity;
     private Quaternion targetRotation = Quaternion.Euler(0, 90f, 0f); // Rotate 90 degrees around the Y-axis
     private string lastQuery = "";
+    private Transform instances;
 
     private void Start()
     {
@@ -50,9 +51,28 @@ public class ModelManager : MonoBehaviour
             float yMinChild = model.GetComponentInChildren<Renderer>().bounds.min.y;
             Vector3 modelPosition = new Vector3(initialPosition.x, yMaxParent - yMinChild, initialPosition.z);
 
+
             // Spawn model as a child of the diorama table
             Instantiate(model, modelPosition, initialRotation, currentModel.transform);
 
+            // Search grandchild called Instances
+            foreach (Transform child in currentModel.transform)
+            {
+                Transform tmp = child.Find("Instances");
+                if (tmp != null)
+                {
+                    instances = tmp;
+                    break;
+                }
+            }
+
+            foreach (Transform instance in instances)
+            {
+                // TODO: probably better to not do this at runtime and only use a fixed set of e.g. 10 materials
+                Color randomColor = Random.ColorHSV(0, 1, 1, 1, 1, 1, 1, 1);
+                instance.GetComponent<Renderer>().material.SetColor("_BaseColor", randomColor);
+                instance.GetComponent<Renderer>().material.SetColor("_HighlightColor", randomColor);
+            }
 
             if (currentAnimationCoroutine != null)
             {
@@ -124,15 +144,16 @@ public class ModelManager : MonoBehaviour
         lastQuery = query;
 
         // Convert query to a feature vector
-        // For now, we'll just use the first vector in the dummy JSON file
-        float[] queryVector = featureVectors[0];
+        float[] queryVector = featureVectors[9]; // use chair in living room example for now
+        // TODO: API call to get feature vector from query
+
 
         // Compare the query vector to all feature vectors in the JSON file
         List<int> matchingKeys = GetKeysByDotProductThreshold(queryVector, queryThreshold);
 
-        // Print the matching keys
-        Debug.Log($"Matching keys: {string.Join(", ", matchingKeys)}");
+        //Debug.Log($"Matching keys: {string.Join(", ", matchingKeys)}");
     }
+    */
 
     private void ParseJson()
     {
