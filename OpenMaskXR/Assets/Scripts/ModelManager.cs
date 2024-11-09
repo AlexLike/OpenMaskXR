@@ -153,7 +153,6 @@ public class ModelManager : MonoBehaviour
         {
             Debug.LogError("Cannot find JSON file at path: " + path);
         }
-
     }
 
     public List<int> GetKeysByDotProductThreshold(float[] inputVector, float threshold)

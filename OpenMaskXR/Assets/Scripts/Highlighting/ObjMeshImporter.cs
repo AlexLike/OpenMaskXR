@@ -1,3 +1,4 @@
+using Leguar.TotalJSON;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,6 +8,9 @@ public class ObjMeshImporter : MonoBehaviour
 {
     public string filePath; // Path to the OBJ file
     public List<int> triangleIDs; // List of triangle IDs to use in the new mesh
+
+    public string jsonPath; // Path to the JSON file
+    private Dictionary<int, int[]> instances;
     private Mesh importedMesh;
 
     // New public method to initiate the import and mesh creation
@@ -19,6 +23,28 @@ public class ObjMeshImporter : MonoBehaviour
         {
             Mesh newMesh = CreateMeshFromTriangles(importedMesh, triangleIDs);
             AssignNewMesh(newMesh);
+        }
+    }
+
+    public void CreateInstanceMeshes()
+    {
+        string fullPath = Path.Combine(Application.dataPath, filePath);
+
+        importedMesh = ImportObjFile(fullPath);
+        ParseJson();
+        GameObject parent = new GameObject("Instances");
+        if (importedMesh != null)
+        {
+            foreach (int id in instances.Keys)
+            {
+                List<int> ids = instances[id].ToList();
+                Debug.Log("id: " + id);
+                Debug.Log("Triangle ids: " + string.Join(", ", ids));
+                Mesh newMesh = CreateMeshFromTriangles(importedMesh, ids);
+
+                GameObject newInstance = AssignNewMesh(newMesh, id.ToString());
+                newInstance.transform.SetParent(parent.transform);
+            }
         }
     }
 
@@ -127,9 +153,9 @@ public class ObjMeshImporter : MonoBehaviour
     }
 
     // Function to assign the new mesh to a MeshFilter or create a new GameObject
-    private void AssignNewMesh(Mesh newMesh)
+    private GameObject AssignNewMesh(Mesh newMesh, string name = "SelectedTrianglesMesh")
     {
-        GameObject newObject = new GameObject("SelectedTrianglesMesh");
+        GameObject newObject = new GameObject(name);
         newObject.AddComponent<MeshFilter>().mesh = newMesh;
 
         // Use sharedMaterial in Edit Mode to prevent material instantiation
@@ -140,6 +166,29 @@ public class ObjMeshImporter : MonoBehaviour
         else
         {
             newObject.AddComponent<MeshRenderer>().material = GetComponent<MeshRenderer>().material;
+        }
+
+        return newObject;
+    }
+
+    private void ParseJson()
+    {
+        // Load a dummy file for now
+        instances = new Dictionary<int, int[]>();
+        string path = Path.Combine(Application.dataPath, jsonPath);
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            JSON jsonObject = JSON.ParseString(json);
+            foreach (string key in jsonObject.Keys)
+            {
+                int[] vec = jsonObject.GetJArray(key).AsIntArray();
+                instances.Add(int.Parse(key), vec);
+            }
+        }
+        else
+        {
+            Debug.LogError("Cannot find JSON file at path: " + path);
         }
     }
 }
