@@ -2,10 +2,13 @@ using Leguar.TotalJSON;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class ModelManager : MonoBehaviour
 {
+    public static int instanceCount = -1;
 
     [SerializeField] private GameObject dioramaTable;
 
@@ -24,12 +27,8 @@ public class ModelManager : MonoBehaviour
     private Quaternion initialRotation = Quaternion.identity;
     private Quaternion targetRotation = Quaternion.Euler(0, 90f, 0f); // Rotate 90 degrees around the Y-axis
     private string lastQuery = "";
+    private float[] queryVector;
     private Transform instances;
-
-    private void Start()
-    {
-        ParseJson();
-    }
 
     public void SpawnModel(GameObject model)
     {
@@ -55,6 +54,9 @@ public class ModelManager : MonoBehaviour
             // Spawn model as a child of the diorama table
             Instantiate(model, modelPosition, initialRotation, currentModel.transform);
 
+            // Set JSON feature vectors
+            ParseJson(model.name);
+
             // Search grandchild called Instances
             foreach (Transform child in currentModel.transform)
             {
@@ -69,7 +71,7 @@ public class ModelManager : MonoBehaviour
             foreach (Transform instance in instances)
             {
                 // TODO: probably better to not do this at runtime and only use a fixed set of e.g. 10 materials
-                Color randomColor = Random.ColorHSV(0, 1, 1, 1, 1, 1, 1, 1);
+                Color randomColor = Random.ColorHSV(0, 1, 0.75f, 0.75f, 0.6f, 0.6f, 1, 1);
                 instance.GetComponent<Renderer>().material.SetColor("_BaseColor", randomColor);
                 instance.GetComponent<Renderer>().material.SetColor("_HighlightColor", randomColor);
             }
@@ -141,32 +143,105 @@ public class ModelManager : MonoBehaviour
 
     public void QueryModel(string query)
     {
-        lastQuery = query;
+        if (query == lastQuery)
+        {
+            if (queryVector == null)
+            {
+                Debug.LogWarning("Still waiting for server response...");
+                return;
+            }
+            // Don't have to do server access for getting embedding
+            List<int> matchingKeys = GetKeysByFraction(queryVector, queryThreshold);
 
-        // Convert query to a feature vector
-        float[] queryVector = featureVectors[9]; // use chair in living room example for now
-        // TODO: API call to get feature vector from query
+            Debug.Log("Adjusting threshold to " + queryThreshold);
+            //Debug.Log($"Matching keys: {string.Join(", ", matchingKeys)}");
 
+            // Highlight the matching instances
+            foreach (Transform instance in instances)
+            {
+                int instanceId = int.Parse(instance.name);
+                instance.GetComponent<Renderer>().enabled = matchingKeys.Contains(instanceId);
+            }
+        }
+        else
+        {
+            queryVector = null;
+            lastQuery = query;
 
-        // Compare the query vector to all feature vectors in the JSON file
-        List<int> matchingKeys = GetKeysByDotProductThreshold(queryVector, queryThreshold);
-
-        //Debug.Log($"Matching keys: {string.Join(", ", matchingKeys)}");
+            Debug.Log("Requesting feature vector for query: '" + query + "' from server");
+            // API call to get feature vector from query and highlight matching instances when done
+            StartCoroutine(TextQuery("https://rhino-good-jennet.ngrok-free.app/text-to-CLIP", $"{{\"text\":\"{query}\"}}"));
+        }
     }
-    */
-
-    private void ParseJson()
+    private IEnumerator TextQuery(string url, string text)
     {
-        // Load a dummy file for now
+        using (UnityWebRequest request = new UnityWebRequest(url, "POST"))
+        {
+            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(text);
+            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            // Send the request and wait for a response
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                Debug.Log("Response: " + request.downloadHandler.text);
+
+                // Parse response JSON to get the feature vector
+                JSON responseJson = JSON.ParseString(request.downloadHandler.text);
+                queryVector = responseJson.GetJArray("CLIP_embedding").AsFloatArray();
+
+                // Normalize query vector
+                // TODO: not sure if needed / beneficial
+                float norm = Mathf.Sqrt(ComputeDotProduct(queryVector, queryVector));
+                for (int i = 0; i < queryVector.Length; i++)
+                {
+                    queryVector[i] /= norm;
+                }
+
+                Debug.Log("Received feature vector: " + string.Join(", ", queryVector));
+
+                // Compare the query vector to all feature vectors in the JSON file
+                List<int> matchingKeys = GetKeysByFraction(queryVector, queryThreshold);
+
+                //Debug.Log($"Matching keys: {string.Join(", ", matchingKeys)}");
+
+                // Highlight the matching instances
+                foreach (Transform instance in instances)
+                {
+                    int instanceId = int.Parse(instance.name);
+                    instance.GetComponent<Renderer>().enabled = matchingKeys.Contains(instanceId);
+                }
+            }
+            else
+            {
+                Debug.LogError("Error: " + request.error);
+            }
+        }
+    }
+
+    private void ParseJson(string scanName)
+    {
         featureVectors = new Dictionary<int, float[]>();
-        string path = Path.Combine(Application.streamingAssetsPath, "clip_example.json");
+        string path = Path.Combine(Application.streamingAssetsPath, $"{scanName}.json");
         if (File.Exists(path))
         {
             string json = File.ReadAllText(path);
             JSON jsonObject = JSON.ParseString(json);
+            instanceCount = jsonObject.Keys.Length;
             foreach (string key in jsonObject.Keys)
             {
                 float[] vec = jsonObject.GetJArray(key).AsFloatArray();
+
+                // Normalize feature vector
+                float norm = Mathf.Sqrt(ComputeDotProduct(vec, vec));
+                for (int i = 0; i < vec.Length; i++)
+                {
+                    vec[i] /= norm;
+                }
+
                 featureVectors.Add(int.Parse(key), vec);
             }
         }
@@ -174,6 +249,43 @@ public class ModelManager : MonoBehaviour
         {
             Debug.LogError("Cannot find JSON file at path: " + path);
         }
+    }
+
+    public List<int> GetKeysByFraction(float[] inputVector, float threshold)
+    {
+        Dictionary<int, float> dotProductResults = new Dictionary<int, float>();
+
+        foreach (var entry in featureVectors)
+        {
+            int key = entry.Key;
+            float[] vector = entry.Value;
+
+            if (vector.Length == inputVector.Length)
+            {
+                float dotProduct = ComputeDotProduct(inputVector, vector);
+                dotProductResults[key] = dotProduct;
+            }
+            else
+            {
+                Debug.LogWarning($"Vector size mismatch for key {key}");
+            }
+        }
+
+        // Sort the dictionary by dot product result in descending order
+        var sortedResults = dotProductResults
+            .OrderByDescending(pair => pair.Value)
+            .ToList();
+
+        // Calculate the number of entries to return based on the threshold fraction
+        int countToReturn = (int)(sortedResults.Count * (1 - threshold));
+
+        // Extract the top fraction of keys and return them
+        List<int> topKeys = sortedResults
+            .Take(countToReturn)
+            .Select(pair => pair.Key)
+            .ToList();
+
+        return topKeys;
     }
 
     public List<int> GetKeysByDotProductThreshold(float[] inputVector, float threshold)
@@ -188,6 +300,7 @@ public class ModelManager : MonoBehaviour
             if (vector.Length == inputVector.Length) // Ensure vectors are of the same dimension
             {
                 float dotProduct = ComputeDotProduct(inputVector, vector);
+                //Debug.Log("dotProduct: " + dotProduct);
                 if (dotProduct > threshold)
                 {
                     resultKeys.Add(key);

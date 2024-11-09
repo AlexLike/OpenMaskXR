@@ -6291,6 +6291,14 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8969571752666551115, guid: 657321a07c3561043af55547ec4b0ed7, type: 3}
+      propertyPath: m_MaxValue
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8969571752666551115, guid: 657321a07c3561043af55547ec4b0ed7, type: 3}
+      propertyPath: m_MinValue
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8969571752666551115, guid: 657321a07c3561043af55547ec4b0ed7, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.size
       value: 1
       objectReference: {fileID: 0}
@@ -6500,6 +6508,7 @@ MonoBehaviour:
   queryMenuTitle: {fileID: 33096811}
   queryMenuSliderScreen: {fileID: 673773739}
   queryMenuPromptScreen: {fileID: 1005050689}
+  queryMenuPlaceholderText: {fileID: 8437028974921092445}
   fadeDuration: 0.5
 --- !u!1 &2086108745
 GameObject:

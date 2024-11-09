@@ -12,6 +12,7 @@ public class UIController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI queryMenuTitle;
     [SerializeField] private GameObject queryMenuSliderScreen;
     [SerializeField] private GameObject queryMenuPromptScreen;
+    [SerializeField] private TextMeshProUGUI queryMenuPlaceholderText;
 
     [Header("Animation Settings")]
     [SerializeField] private float fadeDuration = 0.5f;
@@ -33,6 +34,14 @@ public class UIController : MonoBehaviour
     {
         queryMenuSliderScreen.SetActive(isSliderScreen);
         queryMenuPromptScreen.SetActive(!isSliderScreen);
+
+        if (!isSliderScreen)
+        {
+            if (ModelManager.instanceCount > 0)
+                queryMenuPlaceholderText.text = $"Query {ModelManager.instanceCount} objects...";
+            else
+                queryMenuPlaceholderText.text = "Enter a query here...";
+        }
     }
 
     public void ToggleHomeMenuVisibility(bool isVisible)
