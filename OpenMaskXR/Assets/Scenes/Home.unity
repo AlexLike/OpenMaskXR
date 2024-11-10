@@ -6664,7 +6664,7 @@ MonoBehaviour:
       multiPhrase: 0
       scenario: default
       inputType: text_default
-  usePlatformServices: 1
+  usePlatformServices: 0
   doNotFallbackToWit: 0
   enableConsoleLogging: 1
 --- !u!4 &2086108747
