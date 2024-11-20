@@ -268,10 +268,10 @@ def parse_with_LLM():
             400,
         )
     
-    response = ollama.chat(model='llama3.2:1b', messages=[
+    response = ollama.chat(model='llama3.2', messages=[
         {
             'role': 'user',
-            'content': f"""I want you to extract a physical object from a query. Do not add any additional text in your response other than the physical object itself. An example of that would be to extract the word \"black table\" and nothing else from the query: \"Please find a black table around here\". 
+            'content': f"""I want you to extract a physical object with any available details about it from a query. Do not add any additional text in your response other than the physical object itself. An example of that would be to extract the word \"black table\" and nothing else from the query: \"Please find a black table around here\". 
             The query I want you to extract a physical object from is: {data["text"]}""",
         },
     ])
@@ -280,7 +280,7 @@ def parse_with_LLM():
     return (
         jsonify(
             {
-                "parsed_query": response['message'],
+                "parsed_query": response['message']['content'],
             }
         ),
         200,
