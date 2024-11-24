@@ -12,6 +12,8 @@ public class ModelManager : MonoBehaviour
 
     [SerializeField] private GameObject dioramaTable;
 
+    [SerializeField] private UIController uiController;
+
     [Header("Spawn Settings")]
     [SerializeField] private float spawnDurationHeight = 1.5f;
     [SerializeField] private float spawnDurationRotation = 2.5f;
@@ -195,6 +197,8 @@ public class ModelManager : MonoBehaviour
                 int instanceId = int.Parse(instance.name);
                 instance.GetComponent<Renderer>().enabled = matchingKeys.Contains(instanceId);
             }
+
+            StartCoroutine(uiController.DemonstrateSlider());
             /*******************************************************************/
         }
     }
@@ -237,6 +241,8 @@ public class ModelManager : MonoBehaviour
                     int instanceId = int.Parse(instance.name);
                     instance.GetComponent<Renderer>().enabled = matchingKeys.Contains(instanceId);
                 }
+
+                StartCoroutine(uiController.DemonstrateSlider());
             }
             else
             {

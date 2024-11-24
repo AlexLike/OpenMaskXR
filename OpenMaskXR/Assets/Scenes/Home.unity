@@ -2535,7 +2535,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 727d670d5c5e4df4fb9a89c6e5ecec29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  numBins: 0
   slider: {fileID: 1967736957}
   binColorHighlighted: {r: 0.13333334, g: 0.5882353, b: 0.95294124, a: 1}
   binColor: {r: 0.38679248, g: 0.38679248, b: 0.38679248, a: 1}
@@ -6611,6 +6610,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dioramaTable: {fileID: 4224852489569917117, guid: d27b1f858b71a7c458e6e77e6307d66f, type: 3}
+  uiController: {fileID: 2073726595}
   spawnDurationHeight: 1
   spawnDurationRotation: 2
   sliderHistogram: {fileID: 759876899}
@@ -7570,6 +7570,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae5378ec0c15c0345916be35580c015a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  modelManager: {fileID: 1819363478}
   homeMenuParent: {fileID: 346708446}
   queryMenuParent: {fileID: 1173549765}
   queryMenuTitle: {fileID: 33096811}
@@ -7577,10 +7578,12 @@ MonoBehaviour:
   queryMenuPromptScreen: {fileID: 1005050689}
   queryMenuPlaceholderText: {fileID: 8437028974921092445}
   queryMenuVoiceInputButton: {fileID: 2155308231668200647}
+  queryMenuSlider: {fileID: 1967736957}
   warningsPanelParent: {fileID: 1629482000}
   warningsPanelText: {fileID: 704574450}
   debugLogPanelParent: {fileID: 1675409548}
   fadeDuration: 0.5
+  sliderDemonstrationDuration: 2
 --- !u!1 &2086108745
 GameObject:
   m_ObjectHideFlags: 0

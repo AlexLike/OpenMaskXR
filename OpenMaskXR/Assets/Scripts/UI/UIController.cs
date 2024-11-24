@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
 {
+    [SerializeField] private ModelManager modelManager;
+
     [Header("Home Menu")]
     [SerializeField] private GameObject homeMenuParent;
 
@@ -15,6 +17,7 @@ public class UIController : MonoBehaviour
     [SerializeField] private GameObject queryMenuPromptScreen;
     [SerializeField] private TextMeshProUGUI queryMenuPlaceholderText;
     [SerializeField] private Button queryMenuVoiceInputButton;
+    [SerializeField] private Slider queryMenuSlider;
 
     [Header("Warnings Panel")]
     [SerializeField] private GameObject warningsPanelParent;
@@ -25,6 +28,7 @@ public class UIController : MonoBehaviour
 
     [Header("Animation Settings")]
     [SerializeField] private float fadeDuration = 0.5f;
+    [SerializeField] private float sliderDemonstrationDuration = 2f;
 
     public void ToggleQueryMenuVisibility(bool isVisible)
     {
@@ -83,6 +87,37 @@ public class UIController : MonoBehaviour
     {
         CanvasGroup[] canvasGroups = warningsPanelParent.GetComponentsInChildren<CanvasGroup>();
         StartCoroutine(FadeMenu(warningsPanelParent, canvasGroups, false));
+    }
+
+    public IEnumerator DemonstrateSlider()
+    {
+        float elapsedTime = 0f;
+        float min = queryMenuSlider.minValue;
+        float max = queryMenuSlider.maxValue;
+        float lower = min + 0.25f * (max - min);
+        float upper = min + 0.75f * (max - min);
+        float middle = (max + min) / 2f;
+
+        // Start threshold at 0.5f, then move to 0f, 1f and back to 0.5f
+        while (elapsedTime < sliderDemonstrationDuration)
+        {
+            elapsedTime += Time.deltaTime;
+
+            if (elapsedTime < sliderDemonstrationDuration / 3f)
+            {
+                queryMenuSlider.value = EasingFunction.EaseInOutCubic(middle, lower, 3f * elapsedTime / sliderDemonstrationDuration);
+            }
+            else if (elapsedTime < 2f * sliderDemonstrationDuration / 3f)
+            {
+                queryMenuSlider.value = EasingFunction.EaseInOutCubic(lower, upper, (elapsedTime - sliderDemonstrationDuration / 3) / (sliderDemonstrationDuration / 3));
+            }
+            else
+            {
+                queryMenuSlider.value = EasingFunction.EaseInOutCubic(upper, middle, (elapsedTime - 2 * sliderDemonstrationDuration / 3) / (sliderDemonstrationDuration / 3));
+            }
+
+            yield return null;
+        }
     }
 
     private IEnumerator FadeMenu(GameObject parent, CanvasGroup[] canvasGroups, bool isVisible)
