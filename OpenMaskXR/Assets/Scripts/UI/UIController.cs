@@ -16,6 +16,13 @@ public class UIController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI queryMenuPlaceholderText;
     [SerializeField] private Button queryMenuVoiceInputButton;
 
+    [Header("Warnings Panel")]
+    [SerializeField] private GameObject warningsPanelParent;
+    [SerializeField] private TextMeshProUGUI warningsPanelText;
+
+    [Header("Debug Log Panel")]
+    [SerializeField] private GameObject debugLogPanelParent;
+
     [Header("Animation Settings")]
     [SerializeField] private float fadeDuration = 0.5f;
 
@@ -46,6 +53,11 @@ public class UIController : MonoBehaviour
         }
     }
 
+    public void ToggleDebugLogVisibility(bool isVisible)
+    {
+        debugLogPanelParent.SetActive(isVisible);
+    }
+
     public void SetVoiceButtonColor(bool isRed)
     {
         var colors = queryMenuVoiceInputButton.colors;
@@ -59,9 +71,22 @@ public class UIController : MonoBehaviour
         StartCoroutine(FadeMenu(homeMenuParent, canvasGroups, isVisible));
     }
 
+    public void ShowWarning(string warning)
+    {
+        warningsPanelText.text = warning;
+
+        CanvasGroup[] canvasGroups = warningsPanelParent.GetComponentsInChildren<CanvasGroup>();
+        StartCoroutine(FadeMenu(warningsPanelParent, canvasGroups, true));
+    }
+
+    public void HideWarning()
+    {
+        CanvasGroup[] canvasGroups = warningsPanelParent.GetComponentsInChildren<CanvasGroup>();
+        StartCoroutine(FadeMenu(warningsPanelParent, canvasGroups, false));
+    }
+
     private IEnumerator FadeMenu(GameObject parent, CanvasGroup[] canvasGroups, bool isVisible)
     {
-
         // Delay the fade-in animation by 1 second to allow the spawning/despawning of the model to play first
         if (isVisible)
             yield return new WaitForSeconds(1f);
