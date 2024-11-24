@@ -18,6 +18,8 @@ public class UIController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI queryMenuPlaceholderText;
     [SerializeField] private Button queryMenuVoiceInputButton;
     [SerializeField] private Slider queryMenuSlider;
+    [SerializeField] private TextMeshProUGUI nrOfMatchingInstances;
+    [SerializeField] private TextMeshProUGUI currentTreshold;
 
     [Header("Warnings Panel")]
     [SerializeField] private GameObject warningsPanelParent;
@@ -67,6 +69,12 @@ public class UIController : MonoBehaviour
         var colors = queryMenuVoiceInputButton.colors;
         colors.normalColor = isRed ? Color.red : new Color(48 / 255f, 48 / 255f, 48 / 255f);
         queryMenuVoiceInputButton.colors = colors;
+    }
+
+    public void UpdateQueryMenuInfo(float threshold, int instanceCount)
+    {
+        currentTreshold.text = $"{threshold:F3}"; // Show only three decimal places
+        nrOfMatchingInstances.text = instanceCount.ToString();
     }
 
     public void ToggleHomeMenuVisibility(bool isVisible)

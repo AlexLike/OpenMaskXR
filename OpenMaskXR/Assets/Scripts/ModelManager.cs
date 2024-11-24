@@ -165,6 +165,8 @@ public class ModelManager : MonoBehaviour
             //Debug.Log("Adjusting threshold to " + queryThreshold);
             //Debug.Log($"Matching keys: {string.Join(", ", matchingKeys)}");
 
+            uiController.UpdateQueryMenuInfo(queryThreshold, matchingKeys.Count);
+
             // Highlight the matching instances
             foreach (Transform instance in instances)
             {
@@ -361,7 +363,7 @@ public class ModelManager : MonoBehaviour
             binValues[i] = binCount;
         }
 
-        Debug.Log($"Histogram values: {string.Join(", ", binValues)}");
+        //Debug.Log($"Histogram values: {string.Join(", ", binValues)}");
 
         float maxCount = binValues.Max();
         for (int i = 0; i < histogramBins; i++)
