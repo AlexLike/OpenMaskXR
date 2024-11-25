@@ -12,6 +12,13 @@ import SwiftUI
 
 @Observable @MainActor
 class EnvironmentMesh {
+  /// Whether to render environment mesh chunks.
+  let isVisualized: Bool
+  
+  init(isVisualized: Bool) {
+    self.isVisualized = isVisualized
+  }
+  
   /// The RealityKit entities holding chunks of the environment mesh.
   private(set) var reconstructionEntities = Set<Entity>()
 
@@ -39,12 +46,14 @@ class EnvironmentMesh {
         logger.info("Discovered new reconstruction entity.")
 
         // Highlight in a color that doesn't mimick its neighboring chunks.
-        let material = SimpleMaterial(
-          color: .debug(i: reconstructionEntities.count),
-          isMetallic: false
-        )
-        modelComponent.materials.append(material)
-        event.entity.components.set(modelComponent)
+        if isVisualized {
+          let material = SimpleMaterial(
+            color: .debug(i: reconstructionEntities.count),
+            isMetallic: false
+          )
+          modelComponent.materials.append(material)
+          event.entity.components.set(modelComponent)
+        }
       }
     })
   }
