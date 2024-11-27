@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
 {
+    [SerializeField] private ModelManager modelManager;
+
     [Header("Home Menu")]
     [SerializeField] private GameObject homeMenuParent;
 
@@ -15,9 +17,20 @@ public class UIController : MonoBehaviour
     [SerializeField] private GameObject queryMenuPromptScreen;
     [SerializeField] private TextMeshProUGUI queryMenuPlaceholderText;
     [SerializeField] private Button queryMenuVoiceInputButton;
+    [SerializeField] private Slider queryMenuSlider;
+    [SerializeField] private TextMeshProUGUI nrOfMatchingInstances;
+    [SerializeField] private TextMeshProUGUI currentTreshold;
+
+    [Header("Warnings Panel")]
+    [SerializeField] private GameObject warningsPanelParent;
+    [SerializeField] private TextMeshProUGUI warningsPanelText;
+
+    [Header("Debug Log Panel")]
+    [SerializeField] private GameObject debugLogPanelParent;
 
     [Header("Animation Settings")]
     [SerializeField] private float fadeDuration = 0.5f;
+    [SerializeField] private float sliderDemonstrationDuration = 2f;
 
     public void ToggleQueryMenuVisibility(bool isVisible)
     {
@@ -46,11 +59,22 @@ public class UIController : MonoBehaviour
         }
     }
 
+    public void ToggleDebugLogVisibility(bool isVisible)
+    {
+        debugLogPanelParent.SetActive(isVisible);
+    }
+
     public void SetVoiceButtonColor(bool isRed)
     {
         var colors = queryMenuVoiceInputButton.colors;
         colors.normalColor = isRed ? Color.red : new Color(48 / 255f, 48 / 255f, 48 / 255f);
         queryMenuVoiceInputButton.colors = colors;
+    }
+
+    public void UpdateQueryMenuInfo(float threshold, int instanceCount)
+    {
+        currentTreshold.text = $"{threshold:F3}"; // Show only three decimal places
+        nrOfMatchingInstances.text = instanceCount.ToString();
     }
 
     public void ToggleHomeMenuVisibility(bool isVisible)
@@ -59,9 +83,53 @@ public class UIController : MonoBehaviour
         StartCoroutine(FadeMenu(homeMenuParent, canvasGroups, isVisible));
     }
 
+    public void ShowWarning(string warning)
+    {
+        warningsPanelText.text = warning;
+
+        CanvasGroup[] canvasGroups = warningsPanelParent.GetComponentsInChildren<CanvasGroup>();
+        StartCoroutine(FadeMenu(warningsPanelParent, canvasGroups, true));
+    }
+
+    public void HideWarning()
+    {
+        CanvasGroup[] canvasGroups = warningsPanelParent.GetComponentsInChildren<CanvasGroup>();
+        StartCoroutine(FadeMenu(warningsPanelParent, canvasGroups, false));
+    }
+
+    public IEnumerator DemonstrateSlider()
+    {
+        float elapsedTime = 0f;
+        float min = queryMenuSlider.minValue;
+        float max = queryMenuSlider.maxValue;
+        float lower = min + 0.25f * (max - min);
+        float upper = min + 0.75f * (max - min);
+        float middle = (max + min) / 2f;
+
+        // Start threshold at 0.5f, then move to 0f, 1f and back to 0.5f
+        while (elapsedTime < sliderDemonstrationDuration)
+        {
+            elapsedTime += Time.deltaTime;
+
+            if (elapsedTime < sliderDemonstrationDuration / 3f)
+            {
+                queryMenuSlider.value = EasingFunction.EaseInOutCubic(middle, lower, 3f * elapsedTime / sliderDemonstrationDuration);
+            }
+            else if (elapsedTime < 2f * sliderDemonstrationDuration / 3f)
+            {
+                queryMenuSlider.value = EasingFunction.EaseInOutCubic(lower, upper, (elapsedTime - sliderDemonstrationDuration / 3) / (sliderDemonstrationDuration / 3));
+            }
+            else
+            {
+                queryMenuSlider.value = EasingFunction.EaseInOutCubic(upper, middle, (elapsedTime - 2 * sliderDemonstrationDuration / 3) / (sliderDemonstrationDuration / 3));
+            }
+
+            yield return null;
+        }
+    }
+
     private IEnumerator FadeMenu(GameObject parent, CanvasGroup[] canvasGroups, bool isVisible)
     {
-
         // Delay the fade-in animation by 1 second to allow the spawning/despawning of the model to play first
         if (isVisible)
             yield return new WaitForSeconds(1f);

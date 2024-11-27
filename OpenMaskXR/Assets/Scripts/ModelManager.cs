@@ -1,7 +1,7 @@
 using Leguar.TotalJSON;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -12,23 +12,33 @@ public class ModelManager : MonoBehaviour
 
     [SerializeField] private GameObject dioramaTable;
 
+    [SerializeField] private UIController uiController;
+
     [Header("Spawn Settings")]
     [SerializeField] private float spawnDurationHeight = 1.5f;
     [SerializeField] private float spawnDurationRotation = 2.5f;
 
+    [SerializeField] private SliderHistogram sliderHistogram;
+
     private GameObject currentModel;
     private Coroutine currentAnimationCoroutine;
 
-    private Dictionary<int, float[]> featureVectors;
-
+    private int histogramBins;
+    private Dictionary<int, double[]> featureVectors;
+    private Dictionary<int, double> dotProducts;
     private float queryThreshold = 0.7f; // set by slider
     private Vector3 initialPosition;
     private Vector3 targetPosition;
     private Quaternion initialRotation = Quaternion.identity;
     private Quaternion targetRotation = Quaternion.Euler(0, 90f, 0f); // Rotate 90 degrees around the Y-axis
     private string lastQuery = "";
-    private float[] queryVector;
+    private double[] queryVector;
     private Transform instances;
+
+    private void Start()
+    {
+        histogramBins = sliderHistogram.GetNumBins();
+    }
 
     public void SpawnModel(GameObject model)
     {
@@ -50,7 +60,6 @@ public class ModelManager : MonoBehaviour
             float yMinChild = model.GetComponentInChildren<Renderer>().bounds.min.y;
             Vector3 modelPosition = new Vector3(initialPosition.x, yMaxParent - yMinChild, initialPosition.z);
 
-
             // Spawn model as a child of the diorama table
             Instantiate(model, modelPosition, initialRotation, currentModel.transform);
 
@@ -71,7 +80,7 @@ public class ModelManager : MonoBehaviour
             foreach (Transform instance in instances)
             {
                 // TODO: probably better to not do this at runtime and only use a fixed set of e.g. 10 materials
-                Color randomColor = Random.ColorHSV(0, 1, 0.75f, 0.75f, 0.6f, 0.6f, 1, 1);
+                Color randomColor = UnityEngine.Random.ColorHSV(0, 1, 0.75f, 0.75f, 0.6f, 0.6f, 1, 1);
                 instance.GetComponent<Renderer>().material.SetColor("_BaseColor", randomColor);
                 instance.GetComponent<Renderer>().material.SetColor("_HighlightColor", randomColor);
             }
@@ -137,7 +146,7 @@ public class ModelManager : MonoBehaviour
 
     public void SetQueryThreshold(float newThreshold)
     {
-        queryThreshold = newThreshold;
+        queryThreshold = newThreshold / histogramBins; // normalize threshold to [0, 1]
         QueryModel(lastQuery);
     }
 
@@ -151,10 +160,12 @@ public class ModelManager : MonoBehaviour
                 return;
             }
             // Don't have to do server access for getting embedding
-            List<int> matchingKeys = GetKeysByFraction(queryVector, queryThreshold);
+            List<int> matchingKeys = GetKeysByDotProductThreshold(queryThreshold);
 
             //Debug.Log("Adjusting threshold to " + queryThreshold);
             //Debug.Log($"Matching keys: {string.Join(", ", matchingKeys)}");
+
+            uiController.UpdateQueryMenuInfo(queryThreshold, matchingKeys.Count);
 
             // Highlight the matching instances
             foreach (Transform instance in instances)
@@ -170,9 +181,30 @@ public class ModelManager : MonoBehaviour
 
             Debug.Log("Requesting feature vector for query: '" + query + "' from server");
             // API call to get feature vector from query and highlight matching instances when done
-            StartCoroutine(TextQuery("https://rhino-good-jennet.ngrok-free.app/text-to-CLIP", $"{{\"text\":\"{query}\"}}"));
+            //StartCoroutine(TextQuery("https://rhino-good-jennet.ngrok-free.app/text-to-CLIP", $"{{\"text\":\"{query}\"}}"));
+
+
+            // For testing purposes, use the feature vector of the first instance
+            /*******************************************************************/
+            Debug.LogWarning("PURPOSEFULLY NOT QUERYING SERVER!");
+            queryVector = featureVectors[0];
+            Normalize(queryVector);
+            ComputeDotProducts(queryVector);
+            List<int> matchingKeys = GetKeysByDotProductThreshold(queryThreshold);
+            //Debug.Log($"Matching keys: {string.Join(", ", matchingKeys)}");
+
+            // Highlight the matching instances
+            foreach (Transform instance in instances)
+            {
+                int instanceId = int.Parse(instance.name);
+                instance.GetComponent<Renderer>().enabled = matchingKeys.Contains(instanceId);
+            }
+
+            StartCoroutine(uiController.DemonstrateSlider());
+            /*******************************************************************/
         }
     }
+
     private IEnumerator TextQuery(string url, string text)
     {
         using (UnityWebRequest request = new UnityWebRequest(url, "POST"))
@@ -192,21 +224,17 @@ public class ModelManager : MonoBehaviour
 
                 // Parse response JSON to get the feature vector
                 JSON responseJson = JSON.ParseString(request.downloadHandler.text);
-                queryVector = responseJson.GetJArray("CLIP_embedding").AsFloatArray();
-
-                // Normalize query vector
-                // TODO: not sure if needed / beneficial
-                float norm = Mathf.Sqrt(ComputeDotProduct(queryVector, queryVector));
-                for (int i = 0; i < queryVector.Length; i++)
-                {
-                    queryVector[i] /= norm;
-                }
+                queryVector = responseJson.GetJArray("CLIP_embedding").AsDoubleArray();
+                Normalize(queryVector);
 
                 Debug.Log("Received feature vector: " + string.Join(", ", queryVector));
 
                 // Compare the query vector to all feature vectors in the JSON file
-                List<int> matchingKeys = GetKeysByFraction(queryVector, queryThreshold);
+                // Precompute dot products
+                ComputeDotProducts(queryVector);
 
+                //List<int> matchingKeys = GetKeysByFraction(queryVector, queryThreshold);
+                List<int> matchingKeys = GetKeysByDotProductThreshold(queryThreshold);
                 //Debug.Log($"Matching keys: {string.Join(", ", matchingKeys)}");
 
                 // Highlight the matching instances
@@ -215,6 +243,8 @@ public class ModelManager : MonoBehaviour
                     int instanceId = int.Parse(instance.name);
                     instance.GetComponent<Renderer>().enabled = matchingKeys.Contains(instanceId);
                 }
+
+                StartCoroutine(uiController.DemonstrateSlider());
             }
             else
             {
@@ -227,7 +257,7 @@ public class ModelManager : MonoBehaviour
 
     private void ParseJson(string scanName)
     {
-        featureVectors = new Dictionary<int, float[]>();
+        featureVectors = new Dictionary<int, double[]>();
         switch (scanName)
         {
             case "0024_00-living-room":
@@ -242,6 +272,23 @@ public class ModelManager : MonoBehaviour
         }
     }
 
+    private void Normalize(double[] vec)
+    {
+        double normSquared = ComputeDotProduct(vec, vec);
+
+        // If instance is zero vector, do nothing
+        if (normSquared == 0)
+        {
+            return;
+        }
+
+        double norm = Math.Sqrt(normSquared);
+        for (int i = 0; i < vec.Length; i++)
+        {
+            vec[i] /= norm;
+        }
+    }
+
     private void ProcessJson(string json)
     {
         var jsonObject = JSON.ParseString(json);
@@ -249,41 +296,16 @@ public class ModelManager : MonoBehaviour
 
         foreach (string key in jsonObject.Keys)
         {
-            float[] vec = jsonObject.GetJArray(key).AsFloatArray();
-
-            // Normalize feature vector
-            float norm = Mathf.Sqrt(ComputeDotProduct(vec, vec));
-            for (int i = 0; i < vec.Length; i++)
-            {
-                vec[i] /= norm;
-            }
-
+            double[] vec = jsonObject.GetJArray(key).AsDoubleArray();
+            Normalize(vec);
             featureVectors.Add(int.Parse(key), vec);
         }
     }
 
-    public List<int> GetKeysByFraction(float[] inputVector, float threshold)
+    public List<int> GetKeysByFraction(float threshold)
     {
-        Dictionary<int, float> dotProductResults = new Dictionary<int, float>();
-
-        foreach (var entry in featureVectors)
-        {
-            int key = entry.Key;
-            float[] vector = entry.Value;
-
-            if (vector.Length == inputVector.Length)
-            {
-                float dotProduct = ComputeDotProduct(inputVector, vector);
-                dotProductResults[key] = dotProduct;
-            }
-            else
-            {
-                Debug.LogWarning($"Vector size mismatch for key {key}");
-            }
-        }
-
         // Sort the dictionary by dot product result in descending order
-        var sortedResults = dotProductResults
+        var sortedResults = dotProducts
             .OrderByDescending(pair => pair.Value)
             .ToList();
 
@@ -299,23 +321,20 @@ public class ModelManager : MonoBehaviour
         return topKeys;
     }
 
-    public List<int> GetKeysByDotProductThreshold(float[] inputVector, float threshold)
+    // Should be only called once per query
+    void ComputeDotProducts(double[] inputVector)
     {
-        List<int> resultKeys = new List<int>();
+        dotProducts = new Dictionary<int, double>();
 
         foreach (var entry in featureVectors)
         {
             int key = entry.Key;
-            float[] vector = entry.Value;
+            double[] vector = entry.Value;
 
             if (vector.Length == inputVector.Length) // Ensure vectors are of the same dimension
             {
-                float dotProduct = ComputeDotProduct(inputVector, vector);
-                //Debug.Log("dotProduct: " + dotProduct);
-                if (dotProduct > threshold)
-                {
-                    resultKeys.Add(key);
-                }
+                double dotProduct = ComputeDotProduct(inputVector, vector);
+                dotProducts[key] = dotProduct;
             }
             else
             {
@@ -323,12 +342,55 @@ public class ModelManager : MonoBehaviour
             }
         }
 
+        int binCount;
+        float[] binValues = new float[histogramBins];
+        // Could also make this run in O(n) but since n is small, this is fine
+        // Note that we only look at the treshold range [0,1] and not [-1, 1]
+        for (int i = 0; i < histogramBins; i++)
+        {
+            binCount = 0;
+            float lowerThreshold = i / (float)histogramBins;
+            float upperThreshold = (i + 1) / (float)histogramBins;
+
+            foreach (var entry in dotProducts)
+            {
+                if (entry.Value >= lowerThreshold && entry.Value < upperThreshold)
+                {
+                    binCount++;
+                }
+            }
+
+            binValues[i] = binCount;
+        }
+
+        //Debug.Log($"Histogram values: {string.Join(", ", binValues)}");
+
+        float maxCount = binValues.Max();
+        for (int i = 0; i < histogramBins; i++)
+        {
+            binValues[i] /= maxCount;
+        }
+        sliderHistogram.UpdateBinValues(binValues);
+    }
+
+    public List<int> GetKeysByDotProductThreshold(float threshold)
+    {
+        List<int> resultKeys = new List<int>();
+
+        foreach (var entry in dotProducts)
+        {
+            if (entry.Value >= threshold)
+            {
+                resultKeys.Add(entry.Key);
+            }
+        }
+
         return resultKeys;
     }
 
-    private float ComputeDotProduct(float[] vector1, float[] vector2)
+    private double ComputeDotProduct(double[] vector1, double[] vector2)
     {
-        float dotProduct = 0.0f;
+        double dotProduct = 0.0f;
         for (int i = 0; i < vector1.Length; i++)
         {
             dotProduct += vector1[i] * vector2[i];

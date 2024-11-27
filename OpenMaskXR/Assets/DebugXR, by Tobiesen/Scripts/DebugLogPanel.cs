@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using TMPro;
@@ -14,11 +15,11 @@ public class DebugLogPanel : MonoBehaviour
 
     [Tooltip("Maximum number of messages before deleting the older messages.")]
     [SerializeField]
-    private int maxNumberOfMessages=15;
+    private int maxNumberOfMessages = 15;
 
     [Tooltip("Check this if you want the stack trace printed after the message.")]
     [SerializeField]
-    private bool includeStackTrace=false;
+    private bool includeStackTrace = false;
 
     [Header("Auditory Feedback")]
     [Tooltip("Play a sound when the message panel is updated.")]
@@ -37,28 +38,33 @@ public class DebugLogPanel : MonoBehaviour
 
     void OnEnable()
     {
-        messageQueue = new Queue<string>();       
+        messageQueue = new Queue<string>();
         debugText = GetComponent<TextMeshPro>();
         Application.logMessageReceivedThreaded += Application_logMessageReceivedThreaded;
         messageSound = this.GetComponent<AudioSource>();
     }
-   
+
 
     private void Application_logMessageReceivedThreaded(string condition, string stackTrace, LogType type)
-    {        
+    {
         if (type == LogLevel)
         {
 
-            if (messageSound!=null && playSoundOnMessage)
+            if (messageSound != null && playSoundOnMessage)
             {
                 messageSound.Play();
             }
 
             newMessageArrived = true;
 
+            string timestamp = DateTime.Now.ToString("[HH:mm:ss]");
+
             StringBuilder stringBuilder = new StringBuilder();
 
             stringBuilder.Append("\n");
+
+            stringBuilder.Append(timestamp);
+            stringBuilder.Append(" ");
             stringBuilder.Append(condition);
 
             if (includeStackTrace)
@@ -69,7 +75,7 @@ public class DebugLogPanel : MonoBehaviour
 
             condition = stringBuilder.ToString();
             messageQueue.Enqueue(condition);
-        
+
             if (messageQueue.Count > maxNumberOfMessages)
             {
                 messageQueue.Dequeue();
@@ -91,10 +97,11 @@ public class DebugLogPanel : MonoBehaviour
         StringBuilder stringBuilder = new StringBuilder();
         string[] messageList = messageQueue.ToArray();
 
-        for (int i = 0; i < messageList.Length; i++) {
+        for (int i = 0; i < messageList.Length; i++)
+        {
             stringBuilder.Append(messageList[i]);
             stringBuilder.Append("\n");
-        }        
+        }
 
         string message = stringBuilder.ToString();
         debugText.text = message;

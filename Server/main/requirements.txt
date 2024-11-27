@@ -22,3 +22,4 @@ tqdm==4.66.5
 typing_extensions==4.12.2
 wcwidth==0.2.13
 Werkzeug==3.0.4
+ollama==0.3.3

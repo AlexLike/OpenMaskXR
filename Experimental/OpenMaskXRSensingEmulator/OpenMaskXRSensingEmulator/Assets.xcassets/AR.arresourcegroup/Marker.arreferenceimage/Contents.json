@@ -1,0 +1,15 @@
+{
+  "images" : [
+    {
+      "filename" : "Marker.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "properties" : {
+    "width" : 0.42010332541567691
+  }
+}

@@ -385,6 +385,36 @@ class FlaskAppTestCase(unittest.TestCase):
         self.assertEqual(data["message"], "No text part in the request")
         self.assertEqual(data["status"], "error")
 
+    # Test for /text_with_LLM route
+    def test_parse_with_LLM_with_text(self):
+        # Define the request payload
+        payload = {
+            "text": "I'm looking for a small chair in this room"
+        }
+
+        # Make a POST request with JSON data
+        response = self.client.post("/parse-with-LLM", json=payload)
+
+        # Check that the request was successful
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertIn("parsed_query", data)
+
+    # Test for /parse_with_LLM route with no text
+    def test_parse_with_LLM_missing_text(self):
+        # Define the request payload without the "text" field
+        payload = {}
+
+        # Make a POST request with JSON data
+        response = self.client.post("/parse-with-LLM", json=payload)
+
+        # Check that the request failed due to missing "text" field
+        self.assertEqual(response.status_code, 400)
+        data = response.get_json()
+        self.assertEqual(data["message"], "No text part in the request")
+        self.assertEqual(data["status"], "error")
+
+
 
 if __name__ == "__main__":
     unittest.main()

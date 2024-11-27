@@ -15,6 +15,7 @@ import io
 from flask import send_file
 import processing
 import torch
+import ollama
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -250,6 +251,36 @@ def text_to_CLIP():
         jsonify(
             {
                 "CLIP_embedding": result,
+            }
+        ),
+        200,
+    )
+
+# Route for extracting an object from a query
+@app.route("/parse-with-LLM", methods=["POST"])
+def parse_with_LLM():
+    data = request.json
+
+    # Check if there is a text field in the request
+    if "text" not in data:
+        return (
+            jsonify({"message": "No text part in the request", "status": "error"}),
+            400,
+        )
+    
+    response = ollama.chat(model='llama3.2', messages=[
+        {
+            'role': 'user',
+            'content': f"""I want you to extract a physical object with any available details about it from a query. Do not add any additional text in your response other than the physical object itself. An example of that would be to extract the word \"black table\" and nothing else from the query: \"Please find a black table around here\". 
+            The query I want you to extract a physical object from is: {data["text"]}""",
+        },
+    ])
+
+    # Return a success response
+    return (
+        jsonify(
+            {
+                "parsed_query": response['message']['content'],
             }
         ),
         200,
