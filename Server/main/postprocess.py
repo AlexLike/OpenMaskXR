@@ -13,7 +13,7 @@ import open3d as o3d
 import torch
 import json
 import os
-from postprocess_helpers import get_triangle_ids
+from Server.main.postprocess_helpers import get_triangle_ids
 
 def post_process(scene_name: str) -> None:
     """
