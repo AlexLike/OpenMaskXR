@@ -785,6 +785,13 @@ public static class EasingFunction
         }
     }
 
+    public static Vector3 Ease(Vector3 start, Vector3 end, float value, EaseType type)
+    {
+        return new Vector3(Ease(start.x, end.x, value, type),
+                           Ease(start.y, end.y, value, type),
+                           Ease(start.z, end.z, value, type));
+    }
+
     public delegate float Function(float start, float end, float value);
 
     /// <summary>

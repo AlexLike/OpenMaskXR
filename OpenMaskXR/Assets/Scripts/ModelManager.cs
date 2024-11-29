@@ -5,20 +5,22 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Transformers;
 
 public class ModelManager : MonoBehaviour
 {
     public static int instanceCount = -1;
 
     [SerializeField] private GameObject dioramaTable;
-
     [SerializeField] private UIController uiController;
+    [SerializeField] private SliderHistogram sliderHistogram;
 
-    [Header("Spawn Settings")]
+    [Header("Animation Settings")]
     [SerializeField] private float spawnDurationHeight = 1.5f;
     [SerializeField] private float spawnDurationRotation = 2.5f;
+    [SerializeField] private float scalingDuration = 2.5f;
 
-    [SerializeField] private SliderHistogram sliderHistogram;
 
     private GameObject currentModel;
     private Coroutine currentAnimationCoroutine;
@@ -34,6 +36,9 @@ public class ModelManager : MonoBehaviour
     private string lastQuery = "";
     private double[] queryVector;
     private Transform instances;
+
+    private Vector3 lastDioramaPos;
+    private float lastDioramaScale;
 
     private void Start()
     {
@@ -142,6 +147,104 @@ public class ModelManager : MonoBehaviour
         {
             Destroy(currentModel);
         }
+    }
+
+    public void SetModelSize(bool lifesize)
+    {
+        // We disable at the start when scaling up, and at the end when scaling down
+        if (lifesize)
+        {
+            currentModel.GetComponent<CapsuleCollider>().enabled = false;
+            currentModel.GetComponent<XRGrabInteractable>().enabled = false;
+            currentModel.GetComponent<XRGeneralGrabTransformer>().enabled = false;
+        }
+
+        // Animate scaling of model to/from lifesize
+        if (lifesize)
+        {
+            StartCoroutine(AnimateModelToLifesize());
+        }
+        else
+        {
+            StartCoroutine(AnimateModelToDioramaSize());
+        }
+    }
+
+    private IEnumerator AnimateModelToLifesize()
+    {
+        lastDioramaPos = currentModel.transform.position;
+        lastDioramaScale = currentModel.transform.localScale.x;
+
+        float elapsedTime = 0f;
+        float startScale = currentModel.transform.localScale.x; // scale is uniform in all axis
+        float endScale = 10f;
+
+        Vector3 startPos = currentModel.transform.position;
+        Vector3 endPos = currentModel.transform.position;
+        endPos.y = 0f;
+
+        // Model descends to ground in first phase
+        while (elapsedTime < scalingDuration / 2)
+        {
+            elapsedTime += Time.deltaTime;
+            currentModel.transform.position = EasingFunction.Ease(startPos, endPos, 2 * elapsedTime / scalingDuration, EaseType.EaseInOutSine);
+            yield return null;
+        }
+
+        // Disable diorama table
+        currentModel.transform.Find("Model").GetComponent<MeshRenderer>().enabled = false;
+
+        // Model scales up in second phase
+        while (elapsedTime < scalingDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float newScale = EasingFunction.EaseInOutSine(startScale, endScale, (2 * elapsedTime - scalingDuration) / scalingDuration);
+            currentModel.transform.localScale = new Vector3(newScale, newScale, newScale);
+            yield return null;
+        }
+
+        // Ensure final scale is set correctly
+        currentModel.transform.localScale = new Vector3(endScale, endScale, endScale);
+    }
+
+    private IEnumerator AnimateModelToDioramaSize()
+    {
+
+        float elapsedTime = 0f;
+        float startScale = currentModel.transform.localScale.x; // scale is uniform in all axis
+        float endScale = lastDioramaScale;
+
+        Vector3 startPos = currentModel.transform.position;
+        Vector3 endPos = startPos;
+        endPos.y = lastDioramaPos.y;
+
+        // Model scales down in first phase
+        while (elapsedTime < scalingDuration / 2)
+        {
+            elapsedTime += Time.deltaTime;
+            float newScale = EasingFunction.EaseInOutSine(startScale, endScale, 2 * elapsedTime / scalingDuration);
+            currentModel.transform.localScale = new Vector3(newScale, newScale, newScale);
+            yield return null;
+        }
+
+        // Ensure scale is set correctly
+        currentModel.transform.localScale = new Vector3(endScale, endScale, endScale);
+
+        // Enable diorama table
+        currentModel.transform.Find("Model").GetComponent<MeshRenderer>().enabled = true;
+
+        // Model ascends in second phase
+        while (elapsedTime < scalingDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            currentModel.transform.position = EasingFunction.Ease(startPos, endPos, (2 * elapsedTime - scalingDuration) / scalingDuration, EaseType.EaseInOutSine);
+            yield return null;
+        }
+
+        // Re-enable XR manipulations
+        currentModel.GetComponent<CapsuleCollider>().enabled = true;
+        currentModel.GetComponent<XRGrabInteractable>().enabled = true;
+        currentModel.GetComponent<XRGeneralGrabTransformer>().enabled = true;
     }
 
     public void SetQueryThreshold(float newThreshold)
