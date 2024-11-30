@@ -11,6 +11,7 @@ using UnityEngine.XR.Interaction.Toolkit.Transformers;
 public class ModelManager : MonoBehaviour
 {
     public static int instanceCount = -1;
+    public Transform qrCodeTransform;
 
     [SerializeField] private GameObject dioramaTable;
     [SerializeField] private UIController uiController;
@@ -21,9 +22,9 @@ public class ModelManager : MonoBehaviour
     [SerializeField] private float spawnDurationRotation = 2.5f;
     [SerializeField] private float scalingDuration = 2.5f;
 
-
     private GameObject currentModel;
     private Coroutine currentAnimationCoroutine;
+    private Coroutine currentScalingCoroutine;
 
     private int histogramBins;
     private Dictionary<int, double[]> featureVectors;
@@ -39,6 +40,9 @@ public class ModelManager : MonoBehaviour
 
     private Vector3 lastDioramaPos;
     private float lastDioramaScale;
+    private bool isModelLifesize = false;
+
+    private bool passthroughActive = false;
 
     private void Start()
     {
@@ -106,7 +110,21 @@ public class ModelManager : MonoBehaviour
             {
                 StopCoroutine(currentAnimationCoroutine);
             }
-            currentAnimationCoroutine = StartCoroutine(AnimateModel(false));
+
+            if (currentScalingCoroutine != null)
+            {
+                StopCoroutine(currentScalingCoroutine);
+            }
+
+            if (isModelLifesize)
+            {
+                // Just remove the model without any fancy animation
+                Destroy(currentModel);
+            }
+            else
+            {
+                currentAnimationCoroutine = StartCoroutine(AnimateModel(false));
+            }
         }
     }
 
@@ -114,7 +132,7 @@ public class ModelManager : MonoBehaviour
     {
         float elapsedTime = 0f;
 
-        Vector3 startPos = spawn ? initialPosition : targetPosition;
+        Vector3 startPos = currentModel.transform.position;
         Vector3 endPos = spawn ? targetPosition : initialPosition;
 
         Quaternion startRot = spawn ? initialRotation : targetRotation;
@@ -143,6 +161,12 @@ public class ModelManager : MonoBehaviour
         // Ensure final position and rotation are set correctly
         currentModel.transform.SetPositionAndRotation(new Vector3(currentModel.transform.position.x, endPos.y, currentModel.transform.position.z), endRot);
 
+        // By default we first animate to diorama mode. If the user previously set lifesize mode, animate to lifesize mode
+        if (isModelLifesize)
+        {
+            SetModelSize(true);
+        }
+
         if (!spawn)
         {
             Destroy(currentModel);
@@ -151,6 +175,15 @@ public class ModelManager : MonoBehaviour
 
     public void SetModelSize(bool lifesize)
     {
+        isModelLifesize = lifesize;
+
+        // Don't show the model itself when in passthrough && lifesize mode
+        GameObject modelMesh = UnityUtils.FindChild(currentModel.transform, "default");
+        if (modelMesh != null && modelMesh.GetComponent<MeshRenderer>() != null)
+        {
+            modelMesh.GetComponent<MeshRenderer>().enabled = !lifesize || !passthroughActive;
+        }
+
         // We disable at the start when scaling up, and at the end when scaling down
         if (lifesize)
         {
@@ -159,14 +192,20 @@ public class ModelManager : MonoBehaviour
             currentModel.GetComponent<XRGeneralGrabTransformer>().enabled = false;
         }
 
+        // In case we are already scaling, stop the current coroutine
+        if (currentScalingCoroutine != null)
+        {
+            StopCoroutine(currentScalingCoroutine);
+        }
+
         // Animate scaling of model to/from lifesize
         if (lifesize)
         {
-            StartCoroutine(AnimateModelToLifesize());
+            currentScalingCoroutine = StartCoroutine(AnimateModelToLifesize());
         }
         else
         {
-            StartCoroutine(AnimateModelToDioramaSize());
+            currentScalingCoroutine = StartCoroutine(AnimateModelToDioramaSize());
         }
     }
 
@@ -179,15 +218,32 @@ public class ModelManager : MonoBehaviour
         float startScale = currentModel.transform.localScale.x; // scale is uniform in all axis
         float endScale = 10f;
 
+        // If set, use QR code transform, otherwise just descend to ground
         Vector3 startPos = currentModel.transform.position;
-        Vector3 endPos = currentModel.transform.position;
-        endPos.y = 0f;
+        Vector3 endPos;
+        if (qrCodeTransform != null)
+        {
+            endPos = qrCodeTransform.position;
+        }
+        else
+        {
+            endPos = currentModel.transform.position;
+            endPos.y = 0f;
+        }
 
-        // Model descends to ground in first phase
+        Quaternion startRot = currentModel.transform.rotation;
+        Quaternion endRot = (qrCodeTransform != null) ? qrCodeTransform.rotation : currentModel.transform.rotation;
+
+        // Model descends to ground in first phase and potentially rotates
         while (elapsedTime < scalingDuration / 2)
         {
             elapsedTime += Time.deltaTime;
             currentModel.transform.position = EasingFunction.Ease(startPos, endPos, 2 * elapsedTime / scalingDuration, EaseType.EaseInOutSine);
+
+            if (qrCodeTransform != null)
+            {
+                currentModel.transform.rotation = Quaternion.Slerp(startRot, endRot, EasingFunction.EaseInOutSine(0f, 1f, 2 * elapsedTime / scalingDuration));
+            }
             yield return null;
         }
 
@@ -489,6 +545,11 @@ public class ModelManager : MonoBehaviour
         }
 
         return resultKeys;
+    }
+
+    public void SetPassthroughActive(bool active)
+    {
+        passthroughActive = active;
     }
 
     private double ComputeDotProduct(double[] vector1, double[] vector2)
