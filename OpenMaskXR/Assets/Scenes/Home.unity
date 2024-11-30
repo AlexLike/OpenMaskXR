@@ -4945,7 +4945,7 @@ GameObject:
   - component: {fileID: 1173549768}
   - component: {fileID: 1173549771}
   - component: {fileID: 1173549770}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Query Panel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7962,17 +7962,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &1921456933 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1910844646705829172, guid: d0d9b0fad5cd8dd41b3e3a43240551aa, type: 3}
-  m_PrefabInstance: {fileID: 1076947147}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1951661480
 GameObject:
   m_ObjectHideFlags: 0
@@ -9053,7 +9042,6 @@ MonoBehaviour:
   queryMenuSlider: {fileID: 1967736957}
   nrOfMatchingInstances: {fileID: 703778725}
   currentTreshold: {fileID: 480761606}
-  lifesizeToggle: {fileID: 1921456933}
   warningsPanelParent: {fileID: 1629482000}
   warningsPanelText: {fileID: 704574450}
   debugLogPanelParent: {fileID: 1675409548}
