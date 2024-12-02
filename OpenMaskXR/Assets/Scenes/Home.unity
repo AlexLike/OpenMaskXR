@@ -1536,13 +1536,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 341546234}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -1, z: -0, w: 0.0000029504295}
-  m_LocalPosition: {x: 1.02, y: 0, z: -0.65}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.0297, y: 1, z: 0.021}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &341546239
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7707,7 +7707,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84946746fe2e9bd4e8b7726fcce79769, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  qrCodeTransform: {fileID: 0}
+  qrCodeTransform: {fileID: 341546238}
   dioramaTable: {fileID: 4224852489569917117, guid: d27b1f858b71a7c458e6e77e6307d66f, type: 3}
   uiController: {fileID: 2073726595}
   sliderHistogram: {fileID: 759876899}

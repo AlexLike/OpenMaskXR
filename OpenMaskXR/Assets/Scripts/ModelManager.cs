@@ -89,9 +89,9 @@ public class ModelManager : MonoBehaviour
             foreach (Transform instance in instances)
             {
                 // TODO: probably better to not do this at runtime and only use a fixed set of e.g. 10 materials
-                Color randomColor = UnityEngine.Random.ColorHSV(0, 1, 0.75f, 0.75f, 0.6f, 0.6f, 1, 1);
+                Color randomColor = UnityEngine.Random.ColorHSV(0, 1, 0.75f, 0.75f, 0.6f, 0.6f, 0.42f, 0.42f);
                 instance.GetComponent<Renderer>().material.SetColor("_BaseColor", randomColor);
-                instance.GetComponent<Renderer>().material.SetColor("_HighlightColor", randomColor);
+                //instance.GetComponent<Renderer>().material.SetColor("_HighlightColor", randomColor);
             }
 
             if (currentAnimationCoroutine != null)
@@ -135,8 +135,8 @@ public class ModelManager : MonoBehaviour
         Vector3 startPos = currentModel.transform.position;
         Vector3 endPos = spawn ? targetPosition : initialPosition;
 
-        Quaternion startRot = spawn ? initialRotation : targetRotation;
-        Quaternion endRot = spawn ? targetRotation : initialRotation;
+        Quaternion startRot = spawn ? currentModel.transform.rotation : targetRotation;
+        Quaternion endRot = spawn ? targetRotation : currentModel.transform.rotation;
 
         while (elapsedTime < spawnDurationHeight || elapsedTime < spawnDurationRotation)
         {
@@ -218,21 +218,22 @@ public class ModelManager : MonoBehaviour
         float startScale = currentModel.transform.localScale.x; // scale is uniform in all axis
         float endScale = 10f;
 
-        // If set, use QR code transform, otherwise just descend to ground
+        // If set and in MR mode use QR code transform, otherwise just descend to ground
         Vector3 startPos = currentModel.transform.position;
         Vector3 endPos;
-        if (qrCodeTransform != null)
+        Quaternion startRot = currentModel.transform.rotation;
+        Quaternion endRot;
+        if (qrCodeTransform != null && passthroughActive)
         {
             endPos = qrCodeTransform.position;
+            endRot = qrCodeTransform.rotation;
         }
         else
         {
             endPos = currentModel.transform.position;
             endPos.y = 0f;
+            endRot = currentModel.transform.rotation;
         }
-
-        Quaternion startRot = currentModel.transform.rotation;
-        Quaternion endRot = (qrCodeTransform != null) ? qrCodeTransform.rotation : currentModel.transform.rotation;
 
         // Model descends to ground in first phase and potentially rotates
         while (elapsedTime < scalingDuration / 2)
