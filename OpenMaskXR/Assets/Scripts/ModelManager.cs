@@ -65,12 +65,9 @@ public class ModelManager : MonoBehaviour
         if (model != null)
         {
             currentModel = Instantiate(dioramaTable, initialPosition, Quaternion.identity);
-            float yMaxParent = currentModel.GetComponentInChildren<Renderer>().bounds.max.y;
-            float yMinChild = model.GetComponentInChildren<Renderer>().bounds.min.y;
-            Vector3 modelPosition = new Vector3(initialPosition.x, yMaxParent - yMinChild, initialPosition.z);
 
             // Spawn model as a child of the diorama table
-            Instantiate(model, modelPosition, initialRotation, currentModel.transform);
+            Instantiate(model, initialPosition, initialRotation, currentModel.transform);
 
             // Set JSON feature vectors
             ParseJson(model.name);
@@ -225,9 +222,10 @@ public class ModelManager : MonoBehaviour
         Quaternion endRot;
         if (qrCodeTransform != null && passthroughActive)
         {
-            GameObject instances = UnityUtils.FindChild(currentModel.transform, "Instances");
-            // Subtract local offset of instances to parent for endPos
             endPos = qrCodeTransform.position;
+
+            // Subtract local offset of instances to parent for endPos
+            GameObject instances = UnityUtils.FindChild(currentModel.transform, "Instances");
             endPos -= instances.transform.localPosition;
             endRot = qrCodeTransform.rotation;
         }
