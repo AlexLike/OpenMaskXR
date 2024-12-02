@@ -225,7 +225,10 @@ public class ModelManager : MonoBehaviour
         Quaternion endRot;
         if (qrCodeTransform != null && passthroughActive)
         {
+            GameObject instances = UnityUtils.FindChild(currentModel.transform, "Instances");
+            // Subtract local offset of instances to parent for endPos
             endPos = qrCodeTransform.position;
+            endPos -= instances.transform.localPosition;
             endRot = qrCodeTransform.rotation;
         }
         else
