@@ -226,7 +226,7 @@ public class ModelManager : MonoBehaviour
 
             // Subtract local offset of instances to parent for endPos
             GameObject instances = UnityUtils.FindChild(currentModel.transform, "Instances");
-            endPos -= instances.transform.localPosition;
+            endPos -= instances.transform.localPosition * endScale;
             endRot = qrCodeTransform.rotation;
         }
         else
