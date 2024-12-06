@@ -286,6 +286,44 @@ def parse_with_LLM():
         200,
     )
 
+# Route for querying the VLM
+@app.route("/query-VLM", methods=["POST"])
+def query_VLM():
+    data = request.json
+
+    # Check if there is a text field in the request
+    if "text" not in data:
+        return (
+            jsonify({"message": "No text part in the request", "status": "error"}),
+            400,
+        )
+     
+    # Check if there is a images field in the request
+    if "images" not in data:
+        return (
+            jsonify({"message": "No images part in the request", "status": "error"}),
+            400,
+        )
+    
+    response = ollama.chat(model='llava', messages=[
+        {
+            'role': 'user',
+            'content': data["text"],
+            'images': data["images"]
+        },
+    ])
+
+    # Return a success response
+    return (
+        jsonify(
+            {
+                "parsed_query": response['message']['content'],
+            }
+        ),
+        200,
+    )
+
+
 # Error handling example
 @app.errorhandler(404)
 def route_not_found(e):
