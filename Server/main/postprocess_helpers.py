@@ -12,6 +12,7 @@ import numpy as np
 from scipy.spatial import KDTree
 import open3d as o3d
 
+
 def get_triangle_ids(mesh: o3d.geometry.TriangleMesh, point_cloud: o3d.geometry.PointCloud, point_mask: np.ndarray, object_k: int, assigned_triangles: set[int], k_neighbors: int=10) -> list[int]:
     """
     Returns a list of unique triangle indices that are assigned to object_k based on the majority of their nearest neighbors,
