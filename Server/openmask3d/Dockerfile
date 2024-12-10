@@ -99,6 +99,9 @@ RUN python -c "import clip; clip.load('ViT-L/14@336px','cpu')"
 COPY checkpoints/sam_vit_h_4b8939.pth checkpoints/sam_vit_h_4b8939.pth
 COPY checkpoints/scannet200_model.ckpt checkpoints/scannet200_model.ckpt
 
+# Patch OpenMask3D.
+COPY ./patched_features_extractor.py openmask3d/openmask3d/mask_features_computation/features_extractor.py
+
 # Mount OpenMask3D.
 RUN cd openmask3d && pip install -e .
 ENV PYTHONPATH=/third_party/openmask3d/openmask3d/class_agnostic_mask_computation
