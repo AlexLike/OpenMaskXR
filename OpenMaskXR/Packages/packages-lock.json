@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.gwiazdorrr.betterstreamingassets": {
+      "version": "file:com.gwiazdorrr.betterstreamingassets",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.meta.xr.sdk.voice": {
       "version": "69.0.0",
       "depth": 0,

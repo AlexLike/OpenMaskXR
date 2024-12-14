@@ -9,3 +9,4 @@
 7. Drag all created instance meshes (inside Scans/<scene_name>/Instances into scene, parent them to an object called "Instances", then parent this object together with textured reconstruction mesh to an object called <scene_name>
 8. Fix scaling and rotation (scale of 0.08 and -90 rotation in x seems reasonable) INSIDE the two children, don't set them in parent
 9. Create a prefab in Scans/<scene_name>
+10. Add JSON to JSON_FeatureVectors and adapt switch case in ModelManager.cs

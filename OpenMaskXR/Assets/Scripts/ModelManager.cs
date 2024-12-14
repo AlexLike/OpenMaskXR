@@ -2,6 +2,7 @@ using Leguar.TotalJSON;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -47,6 +48,37 @@ public class ModelManager : MonoBehaviour
     private void Start()
     {
         histogramBins = sliderHistogram.GetNumBins();
+
+        // Initialize JSON feature vectors by loading them from streaming assets and saving them at persistentDataPath
+        // in case not already found there
+        SetupJSONFiles();
+    }
+
+    private void SetupJSONFiles()
+    {
+        BetterStreamingAssets.Initialize();
+
+        // Get all files in the StreamingAssets directory
+        string[] files = BetterStreamingAssets.GetFiles("\\", "*.json", SearchOption.AllDirectories);
+
+        // Iterate over each file
+        foreach (string relativePath in files)
+        {
+            // Compute the corresponding path in persistentDataPath
+            string persistentFilePath = Path.Combine(Application.persistentDataPath, relativePath);
+            Debug.Log("Persistent file path: " + persistentFilePath);
+
+            // Check if the file exists in persistentDataPath
+            if (File.Exists(persistentFilePath))
+            {
+                Debug.Log("File already exists in persistentDataPath: " + persistentFilePath);
+                continue; // File already exists, skip to the next file
+            }
+
+            // Copy the file from streamingAssets to persistentDataPath
+            string json = BetterStreamingAssets.ReadAllText(relativePath);
+            File.WriteAllText(persistentFilePath, json);
+        }
     }
 
     public void SpawnModel(GameObject model)
@@ -342,26 +374,26 @@ public class ModelManager : MonoBehaviour
 
             Debug.Log("Requesting feature vector for query: '" + query + "' from server");
             // API call to get feature vector from query and highlight matching instances when done
-            //StartCoroutine(TextQuery("https://rhino-good-jennet.ngrok-free.app/text-to-CLIP", $"{{\"text\":\"{query}\"}}"));
+            StartCoroutine(TextQuery("https://rhino-good-jennet.ngrok-free.app/text-to-CLIP", $"{{\"text\":\"{query}\"}}"));
 
 
             // For testing purposes, use the feature vector of the first instance
             /*******************************************************************/
-            Debug.LogWarning("PURPOSEFULLY NOT QUERYING SERVER!");
-            queryVector = featureVectors[0];
-            Normalize(queryVector);
-            ComputeDotProducts(queryVector);
-            List<int> matchingKeys = GetKeysByDotProductThreshold(queryThreshold);
-            //Debug.Log($"Matching keys: {string.Join(", ", matchingKeys)}");
+            //Debug.LogWarning("PURPOSEFULLY NOT QUERYING SERVER!");
+            //queryVector = featureVectors[0];
+            //Normalize(queryVector);
+            //ComputeDotProducts(queryVector);
+            //List<int> matchingKeys = GetKeysByDotProductThreshold(queryThreshold);
+            ////Debug.Log($"Matching keys: {string.Join(", ", matchingKeys)}");
 
-            // Highlight the matching instances
-            foreach (Transform instance in instances)
-            {
-                int instanceId = int.Parse(instance.name);
-                instance.GetComponent<Renderer>().enabled = matchingKeys.Contains(instanceId);
-            }
+            //// Highlight the matching instances
+            //foreach (Transform instance in instances)
+            //{
+            //    int instanceId = int.Parse(instance.name);
+            //    instance.GetComponent<Renderer>().enabled = matchingKeys.Contains(instanceId);
+            //}
 
-            StartCoroutine(uiController.DemonstrateSlider());
+            //StartCoroutine(uiController.DemonstrateSlider());
             /*******************************************************************/
         }
     }
@@ -419,17 +451,14 @@ public class ModelManager : MonoBehaviour
     private void ParseJson(string scanName)
     {
         featureVectors = new Dictionary<int, double[]>();
-        switch (scanName)
+        string path = Path.Combine(Application.persistentDataPath, $"{scanName}.json");
+        if (File.Exists(path))
         {
-            case "0024_00-living-room":
-                ProcessJson(JSON_FeatureVectors.livingRoom);
-                break;
-            case "0479_01-laboratory":
-                ProcessJson(JSON_FeatureVectors.laboratory);
-                break;
-            default:
-                Debug.LogWarning("No JSON file found for scan: " + scanName);
-                break;
+            ProcessJson(File.ReadAllText(path));
+        }
+        else
+        {
+            Debug.LogWarning("No JSON file found for scan: " + scanName);
         }
     }
 
