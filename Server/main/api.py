@@ -14,7 +14,6 @@ import zipfile
 import io
 from flask import send_file
 import processing
-import torch
 import ollama
 
 # Initialize the Flask application
@@ -45,20 +44,21 @@ if not os.path.exists(FRAMES_UPLOAD_FOLDER):
 
 
 # Folders for additional mappings
-TRIANGLE_TO_OBJECT_FOLDER = 'triangle_id_to_object_id'
-OBJECT_TO_CLIP_FOLDER = 'object_id_to_CLIP'
+TRIANGLE_TO_OBJECT_FOLDER = "triangle_id_to_object_id"
+OBJECT_TO_CLIP_FOLDER = "object_id_to_CLIP"
 
-app.config['TRIANGLE_TO_OBJECT_FOLDER'] = TRIANGLE_TO_OBJECT_FOLDER
+app.config["TRIANGLE_TO_OBJECT_FOLDER"] = TRIANGLE_TO_OBJECT_FOLDER
 
 # Ensure the triangle to object folder exists
 if not os.path.exists(TRIANGLE_TO_OBJECT_FOLDER):
     os.makedirs(TRIANGLE_TO_OBJECT_FOLDER)
 
-app.config['OBJECT_TO_CLIP_FOLDER'] = OBJECT_TO_CLIP_FOLDER
+app.config["OBJECT_TO_CLIP_FOLDER"] = OBJECT_TO_CLIP_FOLDER
 
 # Ensure the object to clip folder exists
 if not os.path.exists(OBJECT_TO_CLIP_FOLDER):
     os.makedirs(OBJECT_TO_CLIP_FOLDER)
+
 
 @app.route("/reconstruct/<uid>", methods=["POST"])
 def reconstruct(uid):
@@ -175,52 +175,63 @@ def register_frame(uid):
 
 
 # Route to recall mesh files and return them in a zip folder along with the corresponding JSON mappings
-@app.route('/recall/<uid>', methods=['GET'])
+@app.route("/recall/<uid>", methods=["GET"])
 def recall(uid):
     # Get the folder paths for the given UID
-    mesh_folder = os.path.join(app.config['MESH_UPLOAD_FOLDER'], uid)
-    triangle_folder = os.path.join(app.config['TRIANGLE_TO_OBJECT_FOLDER'], uid)
-    clip_folder = os.path.join(app.config['OBJECT_TO_CLIP_FOLDER'], uid)
-    
+    mesh_folder = os.path.join(app.config["MESH_UPLOAD_FOLDER"], uid)
+    triangle_folder = os.path.join(app.config["TRIANGLE_TO_OBJECT_FOLDER"], uid)
+    clip_folder = os.path.join(app.config["OBJECT_TO_CLIP_FOLDER"], uid)
+
     # Check if the mesh folder exists
     if not os.path.exists(mesh_folder):
-        return jsonify({'message': f'No mesh files found for UID {uid}'}), 404
-    
+        return jsonify({"message": f"No mesh files found for UID {uid}"}), 404
+
     # Find all .obj files in the mesh folder
-    obj_files = [f for f in os.listdir(mesh_folder) if f.endswith('.obj')]
-    
+    obj_files = [f for f in os.listdir(mesh_folder) if f.endswith(".obj")]
+
     # If no .obj files are found, return a 404 response
     if not obj_files:
-        return jsonify({'message': f'No .obj files found in folder for UID {uid}'}), 404
+        return jsonify({"message": f"No .obj files found in folder for UID {uid}"}), 404
 
     # Check if triangle_id_to_object_id and object_id_to_CLIP folders exist for the UID
     if not os.path.exists(triangle_folder):
-        return jsonify({'message': f'Triangle ID mappings not found for UID {uid}'}), 404
+        return (
+            jsonify({"message": f"Triangle ID mappings not found for UID {uid}"}),
+            404,
+        )
     if not os.path.exists(clip_folder):
-        return jsonify({'message': f'Object ID to CLIP mappings not found for UID {uid}'}), 404
+        return (
+            jsonify({"message": f"Object ID to CLIP mappings not found for UID {uid}"}),
+            404,
+        )
 
     # Create a zip file in memory
     zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
         # Add each .obj file and corresponding JSON mappings
         for obj_file in obj_files:
             obj_file_path = os.path.join(mesh_folder, obj_file)
-            zip_file.write(obj_file_path, os.path.join(uid, obj_file))  # Add the .obj file
-            
+            zip_file.write(
+                obj_file_path, os.path.join(uid, obj_file)
+            )  # Add the .obj file
+
             # Add the corresponding triangle_id_to_object_id JSON file
-            triangle_file = obj_file.replace('.obj', '.json')
+            triangle_file = obj_file.replace(".obj", ".json")
             triangle_file_path = os.path.join(triangle_folder, triangle_file)
             if os.path.exists(triangle_file_path):
                 zip_file.write(triangle_file_path, os.path.join(uid, triangle_file))
             else:
-                return jsonify({'message': f'Missing triangle ID mapping for {obj_file}'}), 404
-            
+                return (
+                    jsonify({"message": f"Missing triangle ID mapping for {obj_file}"}),
+                    404,
+                )
+
             # Add the corresponding object_id_to_CLIP JSON file
             clip_file_path = os.path.join(clip_folder, triangle_file)
             if os.path.exists(clip_file_path):
                 zip_file.write(clip_file_path, os.path.join(uid, triangle_file))
             else:
-                return jsonify({'message': f'Missing CLIP mapping for {obj_file}'}), 404
+                return jsonify({"message": f"Missing CLIP mapping for {obj_file}"}), 404
 
     # Move the buffer's position to the beginning
     zip_buffer.seek(0)
@@ -228,10 +239,11 @@ def recall(uid):
     # Send the zip file as a downloadable response
     return send_file(
         zip_buffer,
-        mimetype='application/zip',
+        mimetype="application/zip",
         as_attachment=True,
-        download_name=f'mesh_files_and_mappings_{uid}.zip'
+        download_name=f"mesh_files_and_mappings_{uid}.zip",
     )
+
 
 # Route for receiving CLIP embedding for input text
 @app.route("/text-to-CLIP", methods=["POST"])
@@ -256,6 +268,7 @@ def text_to_CLIP():
         200,
     )
 
+
 # Route for extracting an object from a query
 @app.route("/parse-with-LLM", methods=["POST"])
 def parse_with_LLM():
@@ -267,24 +280,28 @@ def parse_with_LLM():
             jsonify({"message": "No text part in the request", "status": "error"}),
             400,
         )
-    
-    response = ollama.chat(model='llama3.2', messages=[
-        {
-            'role': 'user',
-            'content': f"""I want you to extract a physical object with any available details about it from a query. Do not add any additional text in your response other than the physical object itself. An example of that would be to extract the word \"black table\" and nothing else from the query: \"Please find a black table around here\". 
+
+    response = ollama.chat(
+        model="llama3.2",
+        messages=[
+            {
+                "role": "user",
+                "content": f"""I want you to extract a physical object with any available details about it from a query. Do not add any additional text in your response other than the physical object itself. An example of that would be to extract the word \"black table\" and nothing else from the query: \"Please find a black table around here\". 
             The query I want you to extract a physical object from is: {data["text"]}""",
-        },
-    ])
+            },
+        ],
+    )
 
     # Return a success response
     return (
         jsonify(
             {
-                "parsed_query": response['message']['content'],
+                "parsed_query": response["message"]["content"],
             }
         ),
         200,
     )
+
 
 # Route for querying the VLM
 @app.route("/query-VLM", methods=["POST"])
@@ -297,27 +314,26 @@ def query_VLM():
             jsonify({"message": "No text part in the request", "status": "error"}),
             400,
         )
-     
+
     # Check if there is a images field in the request
     if "images" not in data:
         return (
             jsonify({"message": "No images part in the request", "status": "error"}),
             400,
         )
-    
-    response = ollama.chat(model='llava', messages=[
-        {
-            'role': 'user',
-            'content': data["text"],
-            'images': data["images"]
-        },
-    ])
+
+    response = ollama.chat(
+        model="llava",
+        messages=[
+            {"role": "user", "content": data["text"], "images": data["images"]},
+        ],
+    )
 
     # Return a success response
     return (
         jsonify(
             {
-                "parsed_query": response['message']['content'],
+                "parsed_query": response["message"]["content"],
             }
         ),
         200,

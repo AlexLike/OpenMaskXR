@@ -23,8 +23,8 @@ model, _ = clip.load(MODEL, device=device)
 
 
 def encode(text: str) -> torch.Tensor:
-    """Computes the CLIP representation (768) of the provided string."""
+    """Computes the CLIP representation (768,) of the provided string."""
     text = clip.tokenize(text).to(device)
     with torch.no_grad():
         batched_output = model.encode_text(text)
-    return batched_output.squeeze().cpu()
+        return batched_output.squeeze().cpu()

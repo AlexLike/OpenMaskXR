@@ -10,13 +10,16 @@
 
 import numpy as np
 import open3d as o3d
-import open3d.core as o3c
-import cv2
-import os
-import matplotlib.pyplot as plt
+from open3d import core as o3c
 from sklearn.neighbors import NearestNeighbors
+from scipy.spatial import KDTree
 
-def sample_pcd(mesh: o3d.geometry.TriangleMesh, number_of_points: int = 200000, downsampling_ratio: float = 0.75) -> o3d.geometry.PointCloud:
+
+def sample_pcd(
+    mesh: o3d.geometry.TriangleMesh,
+    number_of_points: int = 200000,
+    downsampling_ratio: float = 0.75,
+) -> o3d.geometry.PointCloud:
     """
     Converts a triangle mesh to an uncolored point cloud by sampling points from the surface of the mesh.
 
@@ -31,12 +34,15 @@ def sample_pcd(mesh: o3d.geometry.TriangleMesh, number_of_points: int = 200000, 
 
     # Sample points from the surface of the mesh
     pcd = mesh.sample_points_uniformly(number_of_points=number_of_points)
-    pcd = mesh.sample_points_poisson_disk(number_of_points=int(number_of_points * downsampling_ratio), pcl=pcd)
+    pcd = mesh.sample_points_poisson_disk(
+        number_of_points=int(number_of_points * downsampling_ratio), pcl=pcd
+    )
 
     # Strip the colors from the point cloud (Painted white)
     pcd.colors = o3d.utility.Vector3dVector(np.zeros((len(pcd.points), 3)))
 
     return pcd
+
 
 def color_pcd_from_frame(
     pcd: o3d.geometry.PointCloud,
@@ -45,7 +51,7 @@ def color_pcd_from_frame(
     camera_pose: np.ndarray,
     camera_intrinsics: np.ndarray,
     depth_scale: float = 1000.0,
-    epsilon: float = 0.01
+    epsilon: float = 0.01,
 ) -> o3d.geometry.PointCloud:
     """
     Colors the point cloud by projecting the frame onto the mesh and assigning the colors to the corresponding points.
@@ -80,7 +86,7 @@ def color_pcd_from_frame(
     # Keep only the points in front of the camera
     valid_mask = points_camera[:, 2] > 0  # Boolean array of shape (N,)
     points_camera = points_camera[valid_mask]
-    
+
     # Project the points to the image plane
     points_camera_T = points_camera.T  # Shape: (3, N_valid)
     pixels_hom = (camera_intrinsics[:3, :3] @ points_camera_T).T  # Shape: (N_valid, 3)
@@ -100,11 +106,13 @@ def color_pcd_from_frame(
 
     # Loop over the valid points
     for idx_in_valid, (u, v) in enumerate(pixels):
-        
+
         if 0 <= u < width and 0 <= v < height:
             idx_in_pcd = valid_indices[idx_in_valid]
             # Retrieve depth from depth image
-            depth_from_image = frame_depth[v, u] / depth_scale  # Convert to meters if necessary
+            depth_from_image = (
+                frame_depth[v, u] / depth_scale
+            )  # Convert to meters if necessary
             # Depth from point in camera coordinates
             depth_from_point = points_camera[idx_in_valid, 2]
             # Visibility check
@@ -130,7 +138,7 @@ def render_depth_image(
     height: int,
     intrinsic: np.ndarray,
     camera_pose: np.ndarray,
-    depth_scale: float = 1000.0
+    depth_scale: float = 1000.0,
 ) -> np.ndarray:
     """
     Renders a depth image by raycasting from a given camera pose into a mesh.
@@ -188,7 +196,7 @@ def render_depth_image(
 
     # Step 6: Process depth values
     # Extract 't_hit' which contains the depth values
-    t_hit = raycasting_results['t_hit'].numpy()  # Shape: (width * height,)
+    t_hit = raycasting_results["t_hit"].numpy()  # Shape: (width * height,)
 
     # Reshape to image dimensions
     depth_image = t_hit.reshape((height, width))
@@ -205,7 +213,10 @@ def render_depth_image(
     # Step 7: Return the depth image
     return depth_image_scaled
 
-def fill_outlier_colors(pcd: o3d.geometry.PointCloud, k: int = 100, outlier_threshold: float = 0.5) -> o3d.geometry.PointCloud:
+
+def fill_outlier_colors(
+    pcd: o3d.geometry.PointCloud, k: int = 100, outlier_threshold: float = 0.5
+) -> o3d.geometry.PointCloud:
     """
     Fills in colors that are identified as outliers with respect to their k-nearest neighbors.
 
@@ -222,7 +233,9 @@ def fill_outlier_colors(pcd: o3d.geometry.PointCloud, k: int = 100, outlier_thre
     colors = np.asarray(pcd.colors)  # Shape: (N, 3)
 
     # Build KD-tree using all points for neighbor search
-    nbrs = NearestNeighbors(n_neighbors=k + 1, algorithm='auto').fit(points)  # k + 1 to exclude the point itself
+    nbrs = NearestNeighbors(n_neighbors=k + 1, algorithm="auto").fit(
+        points
+    )  # k + 1 to exclude the point itself
 
     # Iterate over all points to identify outliers and fill their colors
     for idx in range(len(points)):
@@ -246,3 +259,66 @@ def fill_outlier_colors(pcd: o3d.geometry.PointCloud, k: int = 100, outlier_thre
     # Update the point cloud colors
     pcd.colors = o3d.utility.Vector3dVector(colors)
     return pcd
+
+
+def get_triangle_ids(
+    mesh: o3d.geometry.TriangleMesh,
+    point_cloud: o3d.geometry.PointCloud,
+    point_mask: np.ndarray,
+    object_k: int,
+    assigned_triangles: set[int],
+    k_neighbors: int = 10,
+) -> list[int]:
+    """
+    Returns a list of unique triangle indices that are assigned to object_k based on the majority of their nearest neighbors,
+    while ensuring no duplicate assignments across instances.
+
+    Parameters:
+    mesh (o3d.geometry.TriangleMesh): Open3D triangle mesh.
+    point_cloud (o3d.geometry.PointCloud): Open3D point cloud.
+    point_mask (np.ndarray): PxK binary mask, where point_mask[i][k] = 1 if point i belongs to object k.
+    object_k (int): Index of the object (0-based).
+    assigned_triangles (set[int]): Set of triangle indices that are already assigned to other instances.
+    k_neighbors (int): Number of nearest neighbors to consider.
+
+    Returns:
+    list[int]: List of unique triangle indices assigned to object_k.
+    """
+
+    # Extract vertices and faces
+    mesh_vertices = np.asarray(mesh.vertices)  # Nx3 array
+    mesh_faces = np.asarray(mesh.triangles)  # Mx3 array of indices
+
+    # Convert point cloud to Px3 array
+    point_cloud_np = np.asarray(point_cloud.points)
+
+    # Build KDTree from point cloud
+    tree = KDTree(point_cloud_np)
+
+    # Prepare output list to store triangle IDs assigned to object_k
+    triangle_ids = []
+
+    for i, mesh_face in enumerate(mesh_faces):
+        # Skip if this triangle is already assigned to another instance
+        if i in assigned_triangles:
+            continue
+
+        # Get triangle vertex indices
+        idx0, idx1, idx2 = mesh_face
+        # Get vertex positions
+        v0 = mesh_vertices[idx0]
+        v1 = mesh_vertices[idx1]
+        v2 = mesh_vertices[idx2]
+        # Compute centroid of the triangle
+        centroid = (v0 + v1 + v2) / 3.0
+        # Find k nearest neighbors to centroid
+        _, indices = tree.query(centroid, k=k_neighbors)
+        # Get the object assignments of the nearest points
+        neighbor_mask = point_mask[indices, object_k]
+        # Count how many neighbors belong to object_k
+        count = np.sum(neighbor_mask)
+        # If majority of neighbors belong to object_k, assign triangle to object_k
+        if count >= k_neighbors // 2:
+            triangle_ids.append(i)
+
+    return triangle_ids
