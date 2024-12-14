@@ -58,12 +58,18 @@ public class SliderHistogram : MonoBehaviour
 
     public void HideBins()
     {
+        if (binObjects == null)
+            return;
+
         foreach (GameObject bin in binObjects)
             bin.SetActive(false);
     }
 
     public void ShowBins()
     {
+        if (binObjects == null)
+            return;
+
         foreach (GameObject bin in binObjects)
             bin.SetActive(true);
     }
