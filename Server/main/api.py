@@ -8,6 +8,8 @@
 #  Created by Hanqiu Li Cai, Michael Siebenmann, Omar Majzoub, and Alexander Zank
 #  and available under the MIT License. (See <ProjectRoot>/LICENSE.)
 
+import base64
+from pathlib import Path
 from flask import Flask, request, jsonify
 import os
 import zipfile
@@ -15,6 +17,7 @@ import io
 from flask import send_file
 import processing
 import ollama
+import json
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -314,20 +317,37 @@ def query_VLM():
             jsonify({"message": "No text part in the request", "status": "error"}),
             400,
         )
-
-    # Check if there is a images field in the request
-    if "images" not in data:
+     
+    # Check if there is an instance_id field in the request
+    if "instance_id" not in data:
         return (
-            jsonify({"message": "No images part in the request", "status": "error"}),
+            jsonify({"message": "No instance_id part in the request", "status": "error"}),
+            400,
+        )
+ 
+    # Check if there is a folder_name field in the request
+    if "folder_name" not in data:
+        return (
+            jsonify({"message": "No folder_name part in the request", "status": "error"}),
             400,
         )
 
-    response = ollama.chat(
-        model="llava",
-        messages=[
-            {"role": "user", "content": data["text"], "images": data["images"]},
-        ],
-    )
+    images = []
+    top_k_views_list = []
+    with open(f'../../Resources/Examples/{data["folder_name"]}/output/topk_view_dict.json') as f:
+        top_k_views_list = json.load(f)
+    
+    path = f'../../Resources/Examples/{data["folder_name"]}/color/'
+    for image_id in top_k_views_list[str(data["instance_id"])]:
+        images.append(base64.b64encode(Path(path + image_id + ".jpg").read_bytes()).decode())
+
+    response = ollama.chat(model='llava', messages=[
+        {
+            'role': 'user',
+            'content': data["text"],
+            'images': images
+        },
+    ])
 
     # Return a success response
     return (
