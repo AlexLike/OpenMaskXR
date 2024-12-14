@@ -11,8 +11,8 @@ public class UIController : MonoBehaviour
     [SerializeField] private GameObject homeMenuParent;
 
     [Header("Query Menu")]
+    public TextMeshProUGUI queryMenuTitle;
     [SerializeField] private GameObject queryMenuParent;
-    [SerializeField] private TextMeshProUGUI queryMenuTitle;
     [SerializeField] private GameObject queryMenuSliderScreen;
     [SerializeField] private GameObject queryMenuPromptScreen;
     [SerializeField] private TextMeshProUGUI queryMenuPlaceholderText;

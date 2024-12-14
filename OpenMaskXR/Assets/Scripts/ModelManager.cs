@@ -66,12 +66,12 @@ public class ModelManager : MonoBehaviour
         {
             // Compute the corresponding path in persistentDataPath
             string persistentFilePath = Path.Combine(Application.persistentDataPath, relativePath);
-            Debug.Log("Persistent file path: " + persistentFilePath);
+            //Debug.Log("Persistent file path: " + persistentFilePath);
 
             // Check if the file exists in persistentDataPath
             if (File.Exists(persistentFilePath))
             {
-                Debug.Log("File already exists in persistentDataPath: " + persistentFilePath);
+                //Debug.Log("File already exists in persistentDataPath: " + persistentFilePath);
                 continue; // File already exists, skip to the next file
             }
 
@@ -252,7 +252,8 @@ public class ModelManager : MonoBehaviour
         Vector3 endPos;
         Quaternion startRot = currentModel.transform.rotation;
         Quaternion endRot;
-        if (qrCodeTransform != null && passthroughActive)
+        // A bit hacky, but we only want to use the QR code transform if we display the custom scan
+        if (qrCodeTransform != null && uiController.queryMenuTitle.text == "Custom Scan")
         {
             endPos = qrCodeTransform.position;
 
