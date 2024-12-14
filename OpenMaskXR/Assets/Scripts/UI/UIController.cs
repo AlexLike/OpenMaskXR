@@ -20,6 +20,7 @@ public class UIController : MonoBehaviour
     [SerializeField] private Slider queryMenuSlider;
     [SerializeField] private TextMeshProUGUI nrOfMatchingInstances;
     [SerializeField] private TextMeshProUGUI currentTreshold;
+    [SerializeField] private SliderHistogram sliderHistogram;
 
     [Header("Warnings Panel")]
     [SerializeField] private GameObject warningsPanelParent;
@@ -56,6 +57,8 @@ public class UIController : MonoBehaviour
                 queryMenuPlaceholderText.text = $"Query {ModelManager.instanceCount} objects...";
             else
                 queryMenuPlaceholderText.text = "Enter a query here...";
+
+            sliderHistogram.HideBins();
         }
     }
 

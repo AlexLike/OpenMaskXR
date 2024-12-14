@@ -9699,6 +9699,7 @@ MonoBehaviour:
   queryMenuSlider: {fileID: 1967736957}
   nrOfMatchingInstances: {fileID: 703778725}
   currentTreshold: {fileID: 480761606}
+  sliderHistogram: {fileID: 759876899}
   warningsPanelParent: {fileID: 1629482000}
   warningsPanelText: {fileID: 704574450}
   debugLogPanelParent: {fileID: 1675409548}

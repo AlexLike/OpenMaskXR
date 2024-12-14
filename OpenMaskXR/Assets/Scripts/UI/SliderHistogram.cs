@@ -52,6 +52,20 @@ public class SliderHistogram : MonoBehaviour
             bin.GetComponent<Image>().raycastTarget = false;
             binObjects[i] = bin;
         }
+
+        HideBins();
+    }
+
+    public void HideBins()
+    {
+        foreach (GameObject bin in binObjects)
+            bin.SetActive(false);
+    }
+
+    public void ShowBins()
+    {
+        foreach (GameObject bin in binObjects)
+            bin.SetActive(true);
     }
 
     /* For testing purposes */
@@ -79,6 +93,8 @@ public class SliderHistogram : MonoBehaviour
             binRect.sizeDelta = new Vector2(1, binValues[i] * rectTransform.rect.height / 2); // only fill half of slider
             binRect.pivot = new Vector2(0.5f, 0);  // Align to bottom
         }
+
+        ShowBins();
 
         UpdateHistogramColor();
     }
