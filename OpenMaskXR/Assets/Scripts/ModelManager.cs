@@ -296,6 +296,24 @@ public class ModelManager : MonoBehaviour
 
         // Ensure final scale is set correctly
         currentModel.transform.localScale = new Vector3(endScale, endScale, endScale);
+
+        // In case of custom scan, additionally fix the translation to Marker
+        if (uiController.queryMenuTitle.text == "Custom Scan")
+        {
+            GameObject marker = UnityUtils.FindChild(currentModel.transform, "Marker");
+            Vector3 markerOffset = qrCodeTransform.position - marker.transform.position;
+            Vector3 start = currentModel.transform.position;
+            Vector3 end = currentModel.transform.position + markerOffset;
+
+            while (elapsedTime < scalingDuration + 1)
+            {
+                elapsedTime += Time.deltaTime;
+                currentModel.transform.position = EasingFunction.Ease(start, end, elapsedTime - scalingDuration, EaseType.EaseInOutSine);
+                yield return null;
+            }
+
+            currentModel.transform.position = end;
+        }
     }
 
     private IEnumerator AnimateModelToDioramaSize()

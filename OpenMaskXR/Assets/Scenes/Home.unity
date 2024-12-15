@@ -1751,7 +1751,7 @@ Transform:
   m_GameObject: {fileID: 341546234}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.118, y: 0, z: 0.118}
   m_LocalScale: {x: 0.042, y: 1, z: 0.0297}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7813,7 +7813,7 @@ PrefabInstance:
     - target: {fileID: 6928119718678928267, guid: b9d6884e10f7ac5489d19aa6da69e644, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgument
       value: 
-      objectReference: {fileID: 3086194487047920829, guid: b6986d2f63bea8745b4905c0013b3afa, type: 3}
+      objectReference: {fileID: 6828855070285902430, guid: 40ac01a8188b48043bd907cc76d12aa5, type: 3}
     - target: {fileID: 6928119718678928267, guid: b9d6884e10f7ac5489d19aa6da69e644, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_StringArgument
       value: 
@@ -8737,7 +8737,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8969571751951368413, guid: 657321a07c3561043af55547ec4b0ed7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -158
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8969571751951368414, guid: 657321a07c3561043af55547ec4b0ed7, type: 3}
       propertyPath: m_Type
@@ -8781,7 +8781,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8969571752320557268, guid: 657321a07c3561043af55547ec4b0ed7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -118.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8969571752320557269, guid: 657321a07c3561043af55547ec4b0ed7, type: 3}
       propertyPath: m_Enabled
@@ -8885,7 +8885,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8969571752666551115, guid: 657321a07c3561043af55547ec4b0ed7, type: 3}
       propertyPath: m_MaxValue
-      value: 20
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 8969571752666551115, guid: 657321a07c3561043af55547ec4b0ed7, type: 3}
       propertyPath: m_MinValue
