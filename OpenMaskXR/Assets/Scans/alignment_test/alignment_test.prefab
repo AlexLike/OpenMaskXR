@@ -10502,7 +10502,7 @@ GameObject:
   m_Component:
   - component: {fileID: 270828314860092818}
   m_Layer: 0
-  m_Name: alignment-test
+  m_Name: alignment_test
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
