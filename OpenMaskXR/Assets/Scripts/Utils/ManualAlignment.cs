@@ -28,6 +28,9 @@ public class ManualAlignment : MonoBehaviour
     [SerializeField] private const float accelerationRate = 2f;
     [SerializeField] private const float decelerationRate = 10f;
 
+    private bool prevLeftButtonPressed = false;
+    private bool prevRightButtonPressed = false;
+
     void Start()
     {
         meshRenderer = GetComponent<MeshRenderer>();
@@ -40,6 +43,21 @@ public class ManualAlignment : MonoBehaviour
         // Check if both primary buttons are held down
         bool leftButtonPressed = leftPrimaryButtonAction.action.IsPressed();
         bool rightButtonPressed = rightPrimaryButtonAction.action.IsPressed();
+
+        bool leftButtonJustPressed = leftButtonPressed && !prevLeftButtonPressed;
+        bool rightButtonJustPressed = rightButtonPressed && !prevRightButtonPressed;
+
+        if (isActive)
+        {
+            if (leftButtonJustPressed && !rightButtonPressed && buttonHoldTime == 0)
+            {
+                transform.Translate(Vector3.down * 0.0025f);
+            }
+            if (rightButtonJustPressed && !leftButtonPressed && buttonHoldTime == 0)
+            {
+                transform.Translate(Vector3.up * 0.0025f);
+            }
+        }
 
         if (leftButtonPressed && rightButtonPressed)
         {
@@ -61,6 +79,9 @@ public class ManualAlignment : MonoBehaviour
         {
             HandleMovement();
         }
+
+        prevLeftButtonPressed = leftButtonPressed;
+        prevRightButtonPressed = rightButtonPressed;
     }
 
     private void ToggleControl()
