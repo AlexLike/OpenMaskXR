@@ -43,15 +43,22 @@ public class ModelManager : MonoBehaviour
     private float lastDioramaScale;
     private bool isModelLifesize = false;
 
+    private bool nonLinearSlider = false;
     private bool passthroughActive = false;
 
-    private void Start()
+    void Start()
     {
         histogramBins = sliderHistogram.GetNumBins();
 
         // Initialize JSON feature vectors by loading them from streaming assets and saving them at persistentDataPath
         // in case not already found there
         SetupJSONFiles();
+    }
+
+    public void SetNonLinearSlider(bool nonLinear)
+    {
+        nonLinearSlider = nonLinear;
+        sliderHistogram.enabled = !nonLinear;
     }
 
     private void SetupJSONFiles()
@@ -372,7 +379,7 @@ public class ModelManager : MonoBehaviour
                 return;
             }
             // Don't have to do server access for getting embedding
-            List<int> matchingKeys = GetKeysByDotProductThreshold(queryThreshold);
+            List<int> matchingKeys = nonLinearSlider ? GetKeysByFraction(queryThreshold) : GetKeysByDotProductThreshold(queryThreshold);
 
             //Debug.Log("Adjusting threshold to " + queryThreshold);
             //Debug.Log($"Matching keys: {string.Join(", ", matchingKeys)}");
@@ -446,7 +453,7 @@ public class ModelManager : MonoBehaviour
                 ComputeDotProducts(queryVector);
 
                 //List<int> matchingKeys = GetKeysByFraction(queryVector, queryThreshold);
-                List<int> matchingKeys = GetKeysByDotProductThreshold(queryThreshold);
+                List<int> matchingKeys = nonLinearSlider ? GetKeysByFraction(queryThreshold) : GetKeysByDotProductThreshold(queryThreshold);
                 //Debug.Log($"Matching keys: {string.Join(", ", matchingKeys)}");
 
                 // Highlight the matching instances
@@ -579,7 +586,9 @@ public class ModelManager : MonoBehaviour
         {
             binValues[i] /= maxCount;
         }
-        sliderHistogram.UpdateBinValues(binValues);
+
+        if (!nonLinearSlider)
+            sliderHistogram.UpdateBinValues(binValues);
     }
 
     public List<int> GetKeysByDotProductThreshold(float threshold)

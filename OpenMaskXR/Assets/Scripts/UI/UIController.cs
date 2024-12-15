@@ -18,7 +18,9 @@ public class UIController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI queryMenuPlaceholderText;
     [SerializeField] private Button queryMenuVoiceInputButton;
     [SerializeField] private Slider queryMenuSlider;
+    [SerializeField] private TextMeshProUGUI nrOfMatchingInstancesLabel;
     [SerializeField] private TextMeshProUGUI nrOfMatchingInstances;
+    [SerializeField] private TextMeshProUGUI currentTresholdLabel;
     [SerializeField] private TextMeshProUGUI currentTreshold;
     [SerializeField] private SliderHistogram sliderHistogram;
 
@@ -44,6 +46,20 @@ public class UIController : MonoBehaviour
         ToggleQueryMenuVisibility(true);
         queryMenuTitle.text = modelName;
         QueryMenuToggleSliderScreen(false);
+    }
+
+    public void UpdateQueryMenuLabels(bool nonLinearSlider)
+    {
+        if (nonLinearSlider)
+        {
+            nrOfMatchingInstancesLabel.text = "instances are highlighted";
+            currentTresholdLabel.text = "Hidden Fraction: ";
+        }
+        else
+        {
+            nrOfMatchingInstancesLabel.text = "instances are above this threshold";
+            currentTresholdLabel.text = "Current Threshold: ";
+        }
     }
 
     public void QueryMenuToggleSliderScreen(bool isSliderScreen)
