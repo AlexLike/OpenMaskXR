@@ -317,37 +317,44 @@ def query_VLM():
             jsonify({"message": "No text part in the request", "status": "error"}),
             400,
         )
-     
+
     # Check if there is an instance_id field in the request
     if "instance_id" not in data:
         return (
-            jsonify({"message": "No instance_id part in the request", "status": "error"}),
+            jsonify(
+                {"message": "No instance_id part in the request", "status": "error"}
+            ),
             400,
         )
- 
+
     # Check if there is a folder_name field in the request
     if "folder_name" not in data:
         return (
-            jsonify({"message": "No folder_name part in the request", "status": "error"}),
+            jsonify(
+                {"message": "No folder_name part in the request", "status": "error"}
+            ),
             400,
         )
 
     images = []
     top_k_views_list = []
-    with open(f'../../Resources/Examples/{data["folder_name"]}/output/topk_view_dict.json') as f:
+    with open(
+        f'../../Resources/Examples/{data["folder_name"]}/output/topk_view_dict.json'
+    ) as f:
         top_k_views_list = json.load(f)
-    
+
     path = f'../../Resources/Examples/{data["folder_name"]}/color/'
     for image_id in top_k_views_list[str(data["instance_id"])]:
-        images.append(base64.b64encode(Path(path + image_id + ".jpg").read_bytes()).decode())
+        images.append(
+            base64.b64encode(Path(path + image_id + ".jpg").read_bytes()).decode()
+        )
 
-    response = ollama.chat(model='llava', messages=[
-        {
-            'role': 'user',
-            'content': data["text"],
-            'images': images
-        },
-    ])
+    response = ollama.chat(
+        model="llava",
+        messages=[
+            {"role": "user", "content": data["text"], "images": images},
+        ],
+    )
 
     # Return a success response
     return (
@@ -368,4 +375,6 @@ def route_not_found(e):
 
 # Run the application
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=1234)
+
+# ngrok http 1234 --url=https://rhino-good-jennet.ngrok-free.app
