@@ -31,6 +31,12 @@ open-vocabulary object querying.
 If you want to run OpenMaskXR yourself, you need to run both the XR client and the server at the same time.
 
 ### ✨ XR Client
+<p align="center">
+  <a href="">
+    <img src="img/home_menu.png" alt="Home Menu UI" width="42%">
+  </a>
+</p>
+
 We include a Meta Quest 3 build under the [Releases](https://github.com/AlexLike/OpenMaskXR/releases/latest) of this repository.
 Note that our application requires internet access.
 As OpenMaskXR uses OpenXR as an XR plug-in manager, you may also create a build for other MR headsets, such as the Magic Leap 2, HTC Vive Focus 3 or Pico 4.
