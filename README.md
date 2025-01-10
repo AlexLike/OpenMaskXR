@@ -2,10 +2,7 @@
 
   <h1 align="center">OpenMaskXR:<br>Open-Vocabulary Scene Understanding in Extended Reality</h1>
   <p align="center">
-    <strong>Alexander Zank, 
-    Michael Siebenmann
-    Hanqiu Li Cai, 
-    Omar Majzoub</strong> 
+    <strong> Michael Siebenmann, Hanqiu Li Cai, Omar Majzoub, Alexander Zank</strong> 
   </p>
 </p>
 
