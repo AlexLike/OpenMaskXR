@@ -24,12 +24,13 @@
   </a>
 </p>
 
-**OpenMaskXR** is our semester project for ETH's Mixed Reality course. We bring [OpenMask3D](https://openmask3d.github.io) to Extended Reality.
+**OpenMaskXR** is our semester project for [ETH's Mixed Reality course](https://cvg.ethz.ch/lectures/Mixed-Reality/). We bring [OpenMask3D](https://openmask3d.github.io) to Extended Reality.
 With OpenMaskXR, we demonstrate an end-to-end workflow for advanced scene understanding in XR. We implement various
 software components whose tasks range from scanning the environment using commodity hardware to processing and displaying it for
 open-vocabulary object querying.
 
 [**Watch our video**](https://www.youtube.com/watch?v=rDraLkbDRW0) and [**read our paper**](./PAPER.pdf) to learn more.
+We extend our deepest gratitude to Elisabetta Fedele and Alexandros Delitzas for their advice and the Mixed Reality Teaching Staff for creating such an amazing course.
 
 ## 🛠 Setup
 
