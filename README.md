@@ -29,6 +29,8 @@ With OpenMaskXR, we demonstrate an end-to-end workflow for advanced scene unders
 software components whose tasks range from scanning the environment using commodity hardware to processing and displaying it for
 open-vocabulary object querying.
 
+[**Watch our video**](https://www.youtube.com/watch?v=rDraLkbDRW0) and [**read our paper**](./PAPER.pdf) to learn more.
+
 ## 🛠 Setup
 
 If you want to run OpenMaskXR yourself, you need to run both the XR client and the server at the same time.
